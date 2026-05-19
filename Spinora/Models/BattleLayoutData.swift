@@ -16,6 +16,7 @@ struct BattleLayoutData {
 
     var enemyHP: Int
     var enemyMaxHP: Int
+    var enemyAttackText: String
 
     var rerollText: String
     var reelColumns: [[String]]
@@ -31,8 +32,9 @@ struct BattleLayoutData {
         playerHP: 100,
         playerMaxHP: 100,
         playerAttackText: "20",
-        enemyHP: 70,
-        enemyMaxHP: 70,
+        enemyHP: 150,
+        enemyMaxHP: 150,
+        enemyAttackText: "15",
         rerollText: "↻ 3/3",
         reelColumns: [
             ["water", "fire", "fire"],

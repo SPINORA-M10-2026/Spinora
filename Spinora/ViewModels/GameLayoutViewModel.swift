@@ -100,6 +100,7 @@ final class GameLayoutViewModel: ObservableObject {
             
             layoutData.enemyHP = savedRun.enemyHP
             layoutData.enemyMaxHP = savedRun.enemyMaxHP
+            layoutData.enemyAttackText = "\(savedRun.enemyBaseAttack)"
             
             rolledThisTurn = savedRun.rolledThisTurn
             
@@ -376,6 +377,7 @@ final class GameLayoutViewModel: ObservableObject {
             
             layoutData.enemyHP = run.enemyHP
             layoutData.enemyMaxHP = run.enemyMaxHP
+            layoutData.enemyAttackText = "\(run.enemyBaseAttack)"
             
             rolledThisTurn = run.rolledThisTurn
             
@@ -419,6 +421,7 @@ final class GameLayoutViewModel: ObservableObject {
             
             layoutData.enemyHP = run.enemyHP
             layoutData.enemyMaxHP = run.enemyMaxHP
+            layoutData.enemyAttackText = "\(run.enemyBaseAttack)"
             
             rolledThisTurn = run.rolledThisTurn
             
@@ -573,27 +576,18 @@ final class GameLayoutViewModel: ObservableObject {
     private func nextWave() {
         currentWave += 1
 
+        layoutData.enemyMaxHP = enemyMaxHP(for: currentWave)
         layoutData.enemyHP = layoutData.enemyMaxHP
         layoutData.isEnemyDefeated = false
         enemyAppearance = EnemyAppearance.random()
+
+        layoutData.playerHP = layoutData.playerMaxHP
 
         overlay = nil
         confirmAction = nil
 
         startNewTurn()
-        
-//        currentWave += 1
-//        
-//        layoutData.waveText = String(format: "%03d", currentWave)
-//        
-//        layoutData.enemyMaxHP = enemyMaxHP(for: currentWave)
-//        layoutData.enemyHP = layoutData.enemyMaxHP
-//        
-//        overlay = nil
-//        confirmAction = nil
-//        
-//        startNewTurn()
-//        persistCurrentRun()
+        persistCurrentRun()
     }
     
     func resetGame() {
@@ -604,13 +598,13 @@ final class GameLayoutViewModel: ObservableObject {
         enemyAppearance = EnemyAppearance.random()
         
         currentReelColumns = [
-            ["💧", "🔥", "🔥"],
-            ["🔥", "💧", "🪨"],
-            ["🪨", "🪨", "💧"]
+            ["water", "fire", "fire"],
+            ["fire", "water", "earth"],
+            ["earth", "earth", "water"]
         ]
     }
         func enemyMaxHP(for wave: Int) -> Int {
-            90 + ((wave - 1) * 20)
+            150 + ((wave - 1) * 20)
         }
         
         // MARK: - Guidebook
