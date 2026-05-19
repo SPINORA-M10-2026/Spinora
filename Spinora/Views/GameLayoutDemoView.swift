@@ -36,6 +36,8 @@ struct GameLayoutDemoView: View {
                 GameOverlayView(
                     overlay: overlay,
                     confirmAction: viewModel.confirmAction,
+                    hpRewardPercent: viewModel.hpRewardPercent,
+                    atkRewardPercent: viewModel.atkRewardPercent,
                     onRewardSelected: { reward in
                         viewModel.selectReward(reward)
                     },
