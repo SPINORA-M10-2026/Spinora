@@ -18,6 +18,9 @@ final class GameLayoutViewModel: ObservableObject {
     @Published var playerAnimationState: PlayerAnimationState = .idle
     @Published var enemyAppearance: EnemyAppearance = EnemyAppearance.random()
     
+    @Published var hpRewardPercent: Int = 2
+    @Published var atkRewardPercent: Int = 2
+    
     // MARK: - Persistence
     
     private var savedRunRepository: SavedRunRepository?
@@ -100,6 +103,7 @@ final class GameLayoutViewModel: ObservableObject {
             
             layoutData.enemyHP = savedRun.enemyHP
             layoutData.enemyMaxHP = savedRun.enemyMaxHP
+            layoutData.enemyAttackText = "\(savedRun.enemyBaseAttack)"
             
             rolledThisTurn = savedRun.rolledThisTurn
             
@@ -376,6 +380,7 @@ final class GameLayoutViewModel: ObservableObject {
             
             layoutData.enemyHP = run.enemyHP
             layoutData.enemyMaxHP = run.enemyMaxHP
+            layoutData.enemyAttackText = "\(run.enemyBaseAttack)"
             
             rolledThisTurn = run.rolledThisTurn
             
@@ -419,6 +424,7 @@ final class GameLayoutViewModel: ObservableObject {
             
             layoutData.enemyHP = run.enemyHP
             layoutData.enemyMaxHP = run.enemyMaxHP
+            layoutData.enemyAttackText = "\(run.enemyBaseAttack)"
             
             rolledThisTurn = run.rolledThisTurn
             
@@ -445,6 +451,8 @@ final class GameLayoutViewModel: ObservableObject {
     // MARK: - Overlay
     
     func showWaveCleared() {
+        hpRewardPercent = Int.random(in: 1...3)
+        atkRewardPercent = Int.random(in: 1...3)
         overlay = .waveCleared
         syncLayout()
         persistCurrentRun()
@@ -497,103 +505,87 @@ final class GameLayoutViewModel: ObservableObject {
     // MARK: - Reward
     
     func selectReward(_ reward: RewardChoice) {
-        switch reward {
-        case .hp:
-            applyHPReward()
-            
-        case .attack:
-            applyAttackReward()
+        let waveStr = layoutData.waveText
+        let currentWaveVal = Int(waveStr) ?? 1
+        
+        let hpPercent = (reward == .hp) ? hpRewardPercent : 0
+        let atkPercent = (reward == .attack) ? atkRewardPercent : 0
+        
+        let currentMaxHP = layoutData.playerMaxHP
+        let currentATK = currentAttackValue()
+        
+        let newHP = calculateNewHP(current: currentMaxHP, wave: currentWaveVal, rewardPercent: hpPercent)
+        let hpIncrease = newHP - currentMaxHP
+        
+        let newATK = calculateNewATK(current: currentATK, wave: currentWaveVal, rewardPercent: atkPercent)
+        let atkIncrease = newATK - currentATK
+        
+        accumulatedBonusHP += hpIncrease
+        layoutData.playerMaxHP = newHP
+        layoutData.playerHP = newHP
+        
+        accumulatedBonusAttack += atkIncrease
+        layoutData.playerAttackText = "\(newATK)"
+        
+        do {
+            if hpIncrease > 0 {
+                try runUpgradeRepository?.addRunUpgrade(
+                    upgradeKey: "hp_plus_\(hpIncrease)",
+                    upgradeName: "+\(hpIncrease) HP",
+                    bonusHP: hpIncrease
+                )
+            }
+            if atkIncrease > 0 {
+                try runUpgradeRepository?.addRunUpgrade(
+                    upgradeKey: "attack_plus_\(atkIncrease)",
+                    upgradeName: "+\(atkIncrease) Attack",
+                    bonusAttack: atkIncrease
+                )
+            }
+        } catch {
+            print("Failed to save upgrade:", error)
         }
         
         nextWave()
     }
     
-    private func applyHPReward() {
+    private func calculateNewHP(current: Int, wave: Int, rewardPercent: Int) -> Int {
+        let waveF = Double(wave)
+        let fixedMultiplier = 1.0 + (0.45 * (1.0 - 1.0 / waveF)) / waveF
+        let randomMultiplier = 1.0 + (Double(rewardPercent) / 100.0)
         
-        let bonusHP = 10
+        let newHP = Double(current) * fixedMultiplier * randomMultiplier
+        return Int(ceil(newHP))
+    }
 
-        accumulatedBonusHP += bonusHP
-
-        layoutData.playerMaxHP += bonusHP
-        layoutData.playerHP = min(layoutData.playerMaxHP, layoutData.playerHP + bonusHP)
-
-        do {
-            try runUpgradeRepository?.addRunUpgrade(
-                upgradeKey: "hp_plus_10",
-                upgradeName: "+10 HP",
-                bonusHP: bonusHP
-            )
-        } catch {
-            print("Failed to save HP upgrade:", error)
-        }
-//
-//        let bonusHP = 10
-//        
-//        accumulatedBonusHP += bonusHP
-//        
-//         layoutData.waveText = String(format: "%03d", nextWave)
-//         layoutData.enemyHP = layoutData.enemyMaxHP
-//         enemyAppearance = EnemyAppearance.random()
-//        
-//        layoutData.playerMaxHP += bonusHP
-//        layoutData.playerHP = min(layoutData.playerMaxHP, layoutData.playerHP + bonusHP)
-//        
-//        do {
-//            try runUpgradeRepository?.addRunUpgrade(
-//                upgradeKey: "hp_plus_10",
-//                upgradeName: "+10 HP",
-//                bonusHP: bonusHP
-//            )
-//        } catch {
-//            print("Failed to save HP upgrade:", error)
-//        }
+    private func calculateNewATK(current: Int, wave: Int, rewardPercent: Int) -> Int {
+        let waveF = Double(wave)
+        let fixedMultiplier = 1.0 + (0.35 * (1.0 - 1.0 / waveF)) / waveF
+        let randomMultiplier = 1.0 + (Double(rewardPercent) / 100.0)
+        
+        let newATK = Double(current) * fixedMultiplier * randomMultiplier
+        return Int(ceil(newATK))
     }
     
-    private func applyAttackReward() {
-        let bonusAttack = 10
-        
-        accumulatedBonusAttack += bonusAttack
-        
-        let newAttack = currentAttackValue() + bonusAttack
-        layoutData.playerAttackText = "\(newAttack)"
-        
-        do {
-            try runUpgradeRepository?.addRunUpgrade(
-                upgradeKey: "attack_plus_10",
-                upgradeName: "+10 Attack",
-                bonusAttack: bonusAttack
-            )
-        } catch {
-            print("Failed to save attack upgrade:", error)
-        }
-    }
+
     
     // MARK: - Wave
     
     private func nextWave() {
         currentWave += 1
 
+        layoutData.enemyMaxHP = enemyMaxHP(for: currentWave)
         layoutData.enemyHP = layoutData.enemyMaxHP
         layoutData.isEnemyDefeated = false
         enemyAppearance = EnemyAppearance.random()
+
+        layoutData.playerHP = layoutData.playerMaxHP
 
         overlay = nil
         confirmAction = nil
 
         startNewTurn()
-        
-//        currentWave += 1
-//        
-//        layoutData.waveText = String(format: "%03d", currentWave)
-//        
-//        layoutData.enemyMaxHP = enemyMaxHP(for: currentWave)
-//        layoutData.enemyHP = layoutData.enemyMaxHP
-//        
-//        overlay = nil
-//        confirmAction = nil
-//        
-//        startNewTurn()
-//        persistCurrentRun()
+        persistCurrentRun()
     }
     
     func resetGame() {
@@ -604,13 +596,13 @@ final class GameLayoutViewModel: ObservableObject {
         enemyAppearance = EnemyAppearance.random()
         
         currentReelColumns = [
-            ["💧", "🔥", "🔥"],
-            ["🔥", "💧", "🪨"],
-            ["🪨", "🪨", "💧"]
+            ["water", "fire", "fire"],
+            ["fire", "water", "earth"],
+            ["earth", "earth", "water"]
         ]
     }
         func enemyMaxHP(for wave: Int) -> Int {
-            90 + ((wave - 1) * 20)
+            150 + ((wave - 1) * 20)
         }
         
         // MARK: - Guidebook

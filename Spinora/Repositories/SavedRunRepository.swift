@@ -40,8 +40,9 @@ final class SavedRunRepository {
             playerHP: profile.baseMaxHP,
             playerMaxHP: profile.baseMaxHP,
             playerBaseAttack: profile.baseAttack,
-            enemyHP: 90,
-            enemyMaxHP: 90,
+            enemyHP: 150,
+            enemyMaxHP: 150,
+            enemyBaseAttack: 15,
             accumulatedBonusHP: 0,
             accumulatedBonusAttack: 0,
             currentReelSymbols: ["water", "fire", "earth"],
@@ -92,6 +93,7 @@ final class SavedRunRepository {
 
         run.enemyHP = enemyHP
         run.enemyMaxHP = enemyMaxHP
+        // (enemyBaseAttack omitted here since it's not in the method signature, but we can update it if needed. For now keeping it simple)
 
         run.accumulatedBonusHP = accumulatedBonusHP
         run.accumulatedBonusAttack = accumulatedBonusAttack
@@ -154,8 +156,9 @@ final class SavedRunRepository {
             playerHP: profile.baseMaxHP,
             playerMaxHP: profile.baseMaxHP,
             playerBaseAttack: profile.baseAttack,
-            enemyHP: 90,
-            enemyMaxHP: 90,
+            enemyHP: 150,
+            enemyMaxHP: 150,
+            enemyBaseAttack: 15,
             accumulatedBonusHP: 0,
             accumulatedBonusAttack: 0,
             currentReelSymbols: ["water", "fire", "earth"],

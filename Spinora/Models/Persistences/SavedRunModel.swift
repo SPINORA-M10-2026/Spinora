@@ -20,6 +20,7 @@ final class SavedRunModel {
 
     var enemyHP: Int
     var enemyMaxHP: Int
+    var enemyBaseAttack: Int = 15
 
     var accumulatedBonusHP: Int
     var accumulatedBonusAttack: Int
@@ -39,8 +40,9 @@ final class SavedRunModel {
         playerHP: Int = 100,
         playerMaxHP: Int = 100,
         playerBaseAttack: Int = 20,
-        enemyHP: Int = 70,
-        enemyMaxHP: Int = 70,
+        enemyHP: Int = 150,
+        enemyMaxHP: Int = 150,
+        enemyBaseAttack: Int = 15,
         accumulatedBonusHP: Int = 0,
         accumulatedBonusAttack: Int = 0,
         currentReelSymbols: [String] = ["water", "fire", "earth"],
@@ -60,6 +62,7 @@ final class SavedRunModel {
 
         self.enemyHP = enemyHP
         self.enemyMaxHP = enemyMaxHP
+        self.enemyBaseAttack = enemyBaseAttack
 
         self.accumulatedBonusHP = accumulatedBonusHP
         self.accumulatedBonusAttack = accumulatedBonusAttack

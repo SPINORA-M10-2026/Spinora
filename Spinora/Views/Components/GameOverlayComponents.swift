@@ -37,7 +37,7 @@ struct RewardCardView: View {
                 Image(icon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 210, height: 140)
+                    .frame(width: 150)
                     .cornerRadius(18)
                 
                 GamePixelText(title, size: 20)

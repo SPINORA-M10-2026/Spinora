@@ -35,6 +35,8 @@ enum RewardChoice: String {
 struct GameOverlayView: View {
     let overlay: GameOverlayType
     let confirmAction: ConfirmAction?
+    let hpRewardPercent: Int
+    let atkRewardPercent: Int
 
     let onRewardSelected: (RewardChoice) -> Void
     let onOK: () -> Void
@@ -52,6 +54,8 @@ struct GameOverlayView: View {
             switch overlay {
             case .waveCleared:
                 WaveClearedOverlay(
+                    hpRewardPercent: hpRewardPercent,
+                    atkRewardPercent: atkRewardPercent,
                     onHP: {
                         onRewardSelected(.hp)
                     },
@@ -82,27 +86,37 @@ struct GameOverlayView: View {
 // MARK: - Wave Cleared
 
 private struct WaveClearedOverlay: View {
+    let hpRewardPercent: Int
+    let atkRewardPercent: Int
     let onHP: () -> Void
     let onAttack: () -> Void
     let onOK: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
-            RibbonBanner(text: "WAVE CLEARED!")
+//        VStack(spacing: 20) {
+//            RibbonBanner(text: "WAVE CLEARED!")
+//
+//            GamePixelText("pick your reward", size: 25)
+//                .foregroundStyle(.white)
+            
+        ZStack {
+            // backround menu pause
+            Image("alert_wave_cleared")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 350)
+                .offset(y: -150)
 
-            GamePixelText("pick your reward", size: 25)
-                .foregroundStyle(.white)
-
-            HStack(spacing: 0) {
+            HStack(spacing: 20) {
                 RewardCardView(
                     icon: "button_reward_hp_default",
-                    title: "+10% HP",
+                    title: "+\(hpRewardPercent)% HP",
                     action: onHP
                 )
 
                 RewardCardView(
                     icon: "button_reward_atk_default",
-                    title: "+10% ATK",
+                    title: "+\(atkRewardPercent)% ATK",
                     action: onAttack
                 )
             }
