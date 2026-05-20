@@ -20,10 +20,17 @@ enum ConfirmAction {
     var title: String {
         switch self {
         case .restartWave:
-            return "ARE YOU SURE YOU WANT TO RESTART FROM WAVE 1?"
+            return "alert_restart_wave"
         case .resetGame:
-            return "ARE YOU SURE YOU WANT TO RESET GAME?"
+            return "alert_reset_game"
         }
+        
+//        switch self {
+//        case .restartWave:
+//            return "ARE YOU SURE YOU WANT TO RESTART FROM WAVE 1?"
+//        case .resetGame:
+//            return "ARE YOU SURE YOU WANT TO RESET GAME?"
+//        }
     }
 }
 
@@ -93,12 +100,6 @@ private struct WaveClearedOverlay: View {
     let onOK: () -> Void
 
     var body: some View {
-//        VStack(spacing: 20) {
-//            RibbonBanner(text: "WAVE CLEARED!")
-//
-//            GamePixelText("pick your reward", size: 25)
-//                .foregroundStyle(.white)
-            
         ZStack {
             // backround menu pause
             Image("alert_wave_cleared")
@@ -122,13 +123,6 @@ private struct WaveClearedOverlay: View {
                     action: onAttack
                 )
             }
-
-//            GameWideButton(
-//                title: "OK",
-//                width: 230,
-//                height: 68,
-//                action: onOK
-//            )
         }
         .padding(.horizontal, 20)
     }
@@ -174,7 +168,7 @@ private struct ConfirmationOverlay: View {
     var body: some View {
         ZStack {
             // backround menu pause
-            Image("alert_resume")
+            Image(title)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 350)
@@ -182,11 +176,11 @@ private struct ConfirmationOverlay: View {
 
             VStack(spacing: 32) {
                 // text alert
-                GamePixelText(title, size: 24, maxWidth: 260)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.55)
-                    .padding(.horizontal, 12)
+//                GamePixelText(title, size: 24, maxWidth: 260)
+//                    .foregroundStyle(.white)
+//                    .multilineTextAlignment(.center)
+//                    .minimumScaleFactor(0.55)
+//                    .padding(.horizontal, 12)
 
                 HStack(spacing: 50) {
                     // button confirm
@@ -195,6 +189,7 @@ private struct ConfirmationOverlay: View {
                     // button reject
                     MenuApprovalPauseButton(image: "button_cross_default", pressImage: "button_cross_pressed", action: onCancel)
                 }
+                .offset(y: 60)
             }
         }
     }
