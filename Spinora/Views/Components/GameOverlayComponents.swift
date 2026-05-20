@@ -28,17 +28,23 @@ struct RibbonBanner: View {
 
 struct RewardCardView: View {
     let icon: String
+    let pressIcon: String
     let title: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             ZStack {
-                Image(icon)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 150)
-                    .cornerRadius(18)
+                Button(action: action) {
+
+                }
+                .buttonStyle(
+                    ImagePressButtonStyle(
+                        idleImage: icon,
+                        pressedImage: pressIcon,
+                        width: 150
+                    )
+                )
                 
                 GamePixelText(title, size: 20)
                     .foregroundStyle(.white)
@@ -48,36 +54,89 @@ struct RewardCardView: View {
         .buttonStyle(.plain)
     }
 }
+//struct RewardCardView: View {
+//    let icon: String
+//    let pressIcon: String
+//    let title: String
+//    let action: () -> Void
+//
+//    var body: some View {
+//        Button(action: action) {
+//            ZStack {
+//                GamePixelText(title, size: 20)
+//                    .foregroundStyle(.white)
+//                    .offset(y: 20)
+//            }
+//            .frame(width: 150, height: 150)
+//        }
+//        .buttonStyle(
+//            ImagePressButtonStyle(
+//                idleImage: icon,
+//                pressedImage: pressIcon,
+//                width: 150
+//            )
+//        )
+//    }
+//}
+
+// for effect button press
+struct ImagePressButtonStyle: ButtonStyle {
+    let idleImage: String
+    let pressedImage: String
+    let width: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        Image(configuration.isPressed ? pressedImage : idleImage)
+            .resizable()
+            .scaledToFit()
+            .frame(width: width)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
 
 // for menu pause [ resume - restart wave - reset game ] in pause game
 struct MenuPauseButton: View {
     let image: String
+    let pressImage: String
     let action: () -> Void
 
     var body: some View {
+        
         Button(action: action) {
-            Image(image)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 250)
+
         }
-        .buttonStyle(.plain)
+        .buttonStyle(
+            ImagePressButtonStyle(
+                idleImage: image,
+                pressedImage: pressImage,
+                width: 250
+            )
+        )
     }
 }
 
 // for menu approval [ restart wave - reset game ] in pause game
 struct MenuApprovalPauseButton: View {
     let image: String
+    let pressImage: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(image)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80)
+//            Image(image)
+//                .resizable()
+//                .scaledToFit()
+//                .frame(width: 80)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(
+            ImagePressButtonStyle(
+                idleImage: image,
+                pressedImage: pressImage,
+                width: 80
+            )
+        )
+//        .buttonStyle(.plain)
     }
 }
 
