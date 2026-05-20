@@ -14,13 +14,15 @@ struct BottomButtonLayout: View {
     var body: some View {
         ZStack {
             Button(action: onAttackTap) {
-                Image("button_attack_default")
-                    .resizable()
-                    .frame(width: 220, height: 160)
-                .opacity(canAttack ? 1.0 : 0.55)
-//                AttackButtonSlot(isEnabled: canAttack)
+                
             }
-            .buttonStyle(.plain)
+            .buttonStyle(
+                ImagePressButtonStyle(
+                    idleImage: "button_attack_default",
+                    pressedImage: "button_attack_pressed",
+                    width: 220
+                )
+            )
             .disabled(!canAttack)
             .position(x: 670, y: 980)
         }

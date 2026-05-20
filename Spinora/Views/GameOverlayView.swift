@@ -110,12 +110,14 @@ private struct WaveClearedOverlay: View {
             HStack(spacing: 20) {
                 RewardCardView(
                     icon: "button_reward_hp_default",
+                    pressIcon: "button_reward_hp_pressed",
                     title: "+\(hpRewardPercent)% HP",
                     action: onHP
                 )
 
                 RewardCardView(
                     icon: "button_reward_atk_default",
+                    pressIcon: "button_reward_atk_pressed",
                     title: "+\(atkRewardPercent)% ATK",
                     action: onAttack
                 )
@@ -150,13 +152,13 @@ private struct PauseOverlay: View {
             
             VStack(spacing: 20) {
                 // button resume
-                MenuPauseButton(image: "button_resume_default", action: onResume)
+                MenuPauseButton(image: "button_resume_default", pressImage: "button_resume_pushed", action: onResume)
                 
                 // button restart
-                MenuPauseButton(image: "button_restart_wave_default", action: onRestartWave)
+                MenuPauseButton(image: "button_restart_wave_default", pressImage: "button_restart_wave_pushed", action: onRestartWave)
                 
                 // button reset
-                MenuPauseButton(image: "button_reset_game_default", action: onResetGame)
+                MenuPauseButton(image: "button_reset_game_default", pressImage: "button_reset_game_pushed", action: onResetGame)
             }
         }
     }
@@ -188,10 +190,10 @@ private struct ConfirmationOverlay: View {
 
                 HStack(spacing: 50) {
                     // button confirm
-                    MenuApprovalPauseButton(image: "button_check_default", action: onConfirm)
+                    MenuApprovalPauseButton(image: "button_check_default", pressImage: "button_check_pressed", action: onConfirm)
                     
                     // button reject
-                    MenuApprovalPauseButton(image: "button_cross_default", action: onCancel)
+                    MenuApprovalPauseButton(image: "button_cross_default", pressImage: "button_cross_pressed", action: onCancel)
                 }
             }
         }

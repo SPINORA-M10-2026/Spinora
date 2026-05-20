@@ -146,6 +146,7 @@ final class GameLayoutViewModel: ObservableObject {
                 playerBaseAttack: currentAttackValue(),
                 enemyHP: layoutData.enemyHP,
                 enemyMaxHP: layoutData.enemyMaxHP,
+                enemyBaseAttack: Int(layoutData.enemyAttackText) ?? 15,
                 accumulatedBonusHP: accumulatedBonusHP,
                 accumulatedBonusAttack: accumulatedBonusAttack,
                 currentReelSymbols: symbols.map { $0.rawValue },
@@ -506,7 +507,7 @@ final class GameLayoutViewModel: ObservableObject {
     
     func selectReward(_ reward: RewardChoice) {
         let waveStr = layoutData.waveText
-        let currentWaveVal = Int(waveStr) ?? 1
+        let targetWave = (Int(waveStr) ?? 1) + 1
         
         let hpPercent = (reward == .hp) ? hpRewardPercent : 0
         let atkPercent = (reward == .attack) ? atkRewardPercent : 0
@@ -514,10 +515,10 @@ final class GameLayoutViewModel: ObservableObject {
         let currentMaxHP = layoutData.playerMaxHP
         let currentATK = currentAttackValue()
         
-        let newHP = calculateNewHP(current: currentMaxHP, wave: currentWaveVal, rewardPercent: hpPercent)
+        let newHP = calculateNewHP(current: currentMaxHP, wave: targetWave, rewardPercent: hpPercent)
         let hpIncrease = newHP - currentMaxHP
         
-        let newATK = calculateNewATK(current: currentATK, wave: currentWaveVal, rewardPercent: atkPercent)
+        let newATK = calculateNewATK(current: currentATK, wave: targetWave, rewardPercent: atkPercent)
         let atkIncrease = newATK - currentATK
         
         accumulatedBonusHP += hpIncrease
@@ -574,7 +575,7 @@ final class GameLayoutViewModel: ObservableObject {
     private func nextWave() {
         currentWave += 1
 
-        layoutData.enemyMaxHP = enemyMaxHP(for: currentWave)
+        computeNextEnemyStats(wave: currentWave)
         layoutData.enemyHP = layoutData.enemyMaxHP
         layoutData.isEnemyDefeated = false
         enemyAppearance = EnemyAppearance.random()
@@ -601,9 +602,29 @@ final class GameLayoutViewModel: ObservableObject {
             ["earth", "earth", "water"]
         ]
     }
-        func enemyMaxHP(for wave: Int) -> Int {
-            150 + ((wave - 1) * 20)
+    private func computeNextEnemyStats(wave: Int) {
+        if wave <= 1 {
+            layoutData.enemyMaxHP = 150
+            layoutData.enemyAttackText = "15"
+            return
         }
+        
+        let waveF = Double(wave)
+        let currentHP = layoutData.enemyMaxHP
+        let currentATK = Int(layoutData.enemyAttackText) ?? 15
+        
+        // HP = ROUNDUP(HP*(1+(0.4*(1-1/STAGE))/STAGE)*IF(MOD(STAGE;5)=0; 1.06; 1.005))
+        let hpFixedMultiplier = 1.0 + (0.4 * (1.0 - 1.0 / waveF)) / waveF
+        let hpBonusMultiplier = (wave % 5 == 0) ? 1.06 : 1.005
+        let newHP = Double(currentHP) * hpFixedMultiplier * hpBonusMultiplier
+        layoutData.enemyMaxHP = Int(ceil(newHP))
+        
+        // ATK = ROUNDUP(ATK*(1+(0.2*(1-1/STAGE))/STAGE)*IF(MOD(STAGE;5)=0; 1.07; 1.005))
+        let atkFixedMultiplier = 1.0 + (0.2 * (1.0 - 1.0 / waveF)) / waveF
+        let atkBonusMultiplier = (wave % 5 == 0) ? 1.07 : 1.005
+        let newATK = Double(currentATK) * atkFixedMultiplier * atkBonusMultiplier
+        layoutData.enemyAttackText = "\(Int(ceil(newATK)))"
+    }
         
         // MARK: - Guidebook
         

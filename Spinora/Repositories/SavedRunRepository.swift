@@ -78,6 +78,7 @@ final class SavedRunRepository {
         playerBaseAttack: Int,
         enemyHP: Int,
         enemyMaxHP: Int,
+        enemyBaseAttack: Int,
         accumulatedBonusHP: Int,
         accumulatedBonusAttack: Int,
         currentReelSymbols: [String],
@@ -93,7 +94,7 @@ final class SavedRunRepository {
 
         run.enemyHP = enemyHP
         run.enemyMaxHP = enemyMaxHP
-        // (enemyBaseAttack omitted here since it's not in the method signature, but we can update it if needed. For now keeping it simple)
+        run.enemyBaseAttack = enemyBaseAttack
 
         run.accumulatedBonusHP = accumulatedBonusHP
         run.accumulatedBonusAttack = accumulatedBonusAttack
