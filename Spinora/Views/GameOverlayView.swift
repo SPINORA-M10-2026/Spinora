@@ -63,13 +63,7 @@ struct GameOverlayView: View {
                 WaveClearedOverlay(
                     hpRewardPercent: hpRewardPercent,
                     atkRewardPercent: atkRewardPercent,
-                    onHP: {
-                        onRewardSelected(.hp)
-                    },
-                    onAttack: {
-                        onRewardSelected(.attack)
-                    },
-                    onOK: onOK
+                    onRewardSelected: onRewardSelected
                 )
 
             case .pause:
@@ -95,9 +89,9 @@ struct GameOverlayView: View {
 private struct WaveClearedOverlay: View {
     let hpRewardPercent: Int
     let atkRewardPercent: Int
-    let onHP: () -> Void
-    let onAttack: () -> Void
-    let onOK: () -> Void
+    let onRewardSelected: (RewardChoice) -> Void
+    
+    @State private var selectedChoice: RewardChoice? = nil
 
     var body: some View {
         ZStack {
@@ -113,16 +107,33 @@ private struct WaveClearedOverlay: View {
                     icon: "button_reward_hp_default",
                     pressIcon: "button_reward_hp_pressed",
                     title: "+\(hpRewardPercent)% HP",
-                    action: onHP
+                    isSelected: selectedChoice == .hp,
+                    action: { selectedChoice = .hp }
                 )
 
                 RewardCardView(
                     icon: "button_reward_atk_default",
                     pressIcon: "button_reward_atk_pressed",
                     title: "+\(atkRewardPercent)% ATK",
-                    action: onAttack
+                    isSelected: selectedChoice == .attack,
+                    action: { selectedChoice = .attack }
                 )
             }
+            
+            Button(action: {
+                if let choice = selectedChoice {
+                    onRewardSelected(choice)
+                }
+            }) {
+                Image("button_ok")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150)
+                    .opacity(selectedChoice == nil ? 0.5 : 1.0)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(selectedChoice == nil)
+            .offset(y: 150)
         }
         .padding(.horizontal, 20)
     }

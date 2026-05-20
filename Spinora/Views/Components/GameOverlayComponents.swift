@@ -30,28 +30,23 @@ struct RewardCardView: View {
     let icon: String
     let pressIcon: String
     let title: String
+    let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             ZStack {
-                Button(action: action) {
-
-                }
-                .buttonStyle(
-                    ImagePressButtonStyle(
-                        idleImage: icon,
-                        pressedImage: pressIcon,
-                        width: 150
-                    )
-                )
+                Image(isSelected ? pressIcon : icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150)
                 
                 GamePixelText(title, size: 20)
                     .foregroundStyle(.white)
                     .offset(x: 0, y: 20)
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 //struct RewardCardView: View {

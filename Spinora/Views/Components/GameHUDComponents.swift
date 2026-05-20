@@ -24,10 +24,10 @@ struct HUDLayout: View {
                 .position(x: 96, y: 165)
 
             VStack(alignment: .leading, spacing: 0) {
-                GamePixelText("Wave", size: 28)
+                GamePixelText("Wave", size: 38)
                 GamePixelText(waveText, size: 44)
             }
-            .position(x: 202, y: 174)
+            .position(x: 202, y: 164)
 
             // icon / button pause
             Button(action: onPauseTap) {
