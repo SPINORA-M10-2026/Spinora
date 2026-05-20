@@ -13,6 +13,10 @@ struct ArenaLayout: View {
     var enemyAppearance: EnemyAppearance? = nil
 
     @State private var enemyFloat: CGFloat = 0
+    @State private var showAttackEffect = false
+
+    private let knightAttackDuration: TimeInterval = 0.6
+    private let effectDuration: TimeInterval = 0.6
 
     var body: some View {
         ZStack {
@@ -61,6 +65,19 @@ struct ArenaLayout: View {
                 }
             }
 
+            // attack effect on enemy — plays after knight_attack finishes
+            if showAttackEffect {
+                FrameAnimatedSprite(
+                    frames: (1...6).map { "effect_atk_0\($0)" },
+                    duration: effectDuration,
+                    repeats: false,
+                    cornerRadius: 0
+                )
+                .frame(width: 270, height: 270)
+                .position(x: 600, y: 550)
+                .id(showAttackEffect)
+            }
+
             // player avatar
             PlayerSpriteView(state: playerState)
                 .frame(width: 270)
@@ -81,6 +98,15 @@ struct ArenaLayout: View {
             AttackStatSlot(text: data.playerAttackText)
                 .frame(width: 120, height: 32)
                 .position(x: 311, y: 870)
+        }
+        .onChange(of: playerState) { _, newState in
+            guard newState == .attack else { return }
+            Task {
+                try? await Task.sleep(nanoseconds: UInt64(knightAttackDuration * 1_000_000_000))
+                showAttackEffect = true
+                try? await Task.sleep(nanoseconds: UInt64(effectDuration * 1_000_000_000))
+                showAttackEffect = false
+            }
         }
     }
 }
