@@ -100,12 +100,8 @@ struct HealthBarSlot: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                AssetSlot(
-                    label,
-                    fill: GameColor.wood,
-                    cornerRadius: 7,
-                    showLabel: false
-                )
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(GameColor.wood)
 
                 RoundedRectangle(cornerRadius: 6)
                     .fill(fillColor)
@@ -116,6 +112,11 @@ struct HealthBarSlot: View {
                 GamePixelText(value, size: 17)
                     .padding(.leading, 18)
             }
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(GameColor.woodDark.opacity(0.6), lineWidth: 4) // Border gelap
+            )
+            .shadow(color: .black, radius: 1, x: 1, y: 1) // Kedalaman ekstra
         }
     }
 }
