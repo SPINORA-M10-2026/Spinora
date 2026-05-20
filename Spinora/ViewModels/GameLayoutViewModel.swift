@@ -59,7 +59,8 @@ final class GameLayoutViewModel: ObservableObject {
     private var hasDismissedTapToPlay: Bool = false
 
     private var enemyAttackValue: Int { 8 + currentWave * 3 }
-    
+//    private var enemyAttackValue: Int { 9999 }
+
     init() {
         startNewTurn()
     }
