@@ -79,8 +79,8 @@ struct ArenaLayout: View {
 
             // player ATK bar
             AttackStatSlot(text: data.playerAttackText)
-                .frame(width: 140, height: 40)
-                .position(x: 290, y: 870)
+                .frame(width: 120, height: 32)
+                .position(x: 311, y: 870)
         }
     }
 }
@@ -126,20 +126,14 @@ struct AttackStatSlot: View {
 
     var body: some View {
         ZStack {
-            AssetSlot(
-                "attack_stat_bar",
-                fill: GameColor.wood,
-                cornerRadius: 6,
-                showLabel: false
-            )
+            Image("Hero_atk_point")
+                .resizable()
+                .scaledToFill()
 
-            HStack(spacing: 6) {
-                Text("⚔️")
-                    .font(.system(size: 19))
-
-                GamePixelText(text, size: 17)
-            }
+            GamePixelText(text, size: 17)
+                .padding(.leading, 18)
         }
+        .clipped()
     }
 }
 
