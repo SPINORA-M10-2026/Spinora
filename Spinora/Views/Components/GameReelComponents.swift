@@ -174,7 +174,7 @@ struct ReelLayout: View {
                 }
             }
 
-            try? await Task.sleep(nanoseconds: 500_000_000)
+            try? await Task.sleep(for: .milliseconds(500))
         }
     }
 }

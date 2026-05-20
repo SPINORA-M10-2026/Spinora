@@ -58,7 +58,7 @@ final class GameViewModel: ObservableObject {
         isRolling = true
 
         Task {
-            try? await Task.sleep(nanoseconds: UInt64(result.duration * 1_000_000_000))
+            try? await Task.sleep(for: .seconds(result.duration))
             reelState = reelManager.commitRoll(
                 result: result,
                 symbols: reelState.symbols,
@@ -75,7 +75,7 @@ final class GameViewModel: ObservableObject {
 
         playerAnimationState = .attack
         Task {
-            try? await Task.sleep(nanoseconds: 600_000_000)
+            try? await Task.sleep(for: .milliseconds(600))
             playerAnimationState = .idle
         }
 

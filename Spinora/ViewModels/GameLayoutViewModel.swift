@@ -16,6 +16,9 @@ final class GameLayoutViewModel: ObservableObject {
     @Published var overlay: GameOverlayType? = nil
     @Published var confirmAction: ConfirmAction? = nil
     @Published var playerAnimationState: PlayerAnimationState = .idle
+    // enemyAnimationState: dikontrol di attack() saat giliran monster balas serang.
+    // Diteruskan ke ArenaLayout via GameBattleView untuk trigger efek visual di player.
+    @Published var enemyAnimationState: EnemyAnimationState = .idle
     @Published var enemyAppearance: EnemyAppearance = EnemyAppearance.random()
     
     @Published var hpRewardPercent: Int = 2
@@ -288,7 +291,6 @@ final class GameLayoutViewModel: ObservableObject {
         guard overlay == nil else { return }
         hasDismissedTapToPlay = true
 
-        // --- Player turn ---
         let enemyElement = enemyAppearance.bodyElement
         let playerDamage = DamageCalculator.calculateDamage(
             playerElements: symbols,
@@ -300,34 +302,47 @@ final class GameLayoutViewModel: ObservableObject {
         let comboLabel = strongCount == 3 ? "TRIPLE x4" : strongCount == 2 ? "DOUBLE x2" : "none"
         print("⚔️ PLAYER: \(playerDamage) DMG | [\(symbols.map { $0.rawValue }.joined(separator: ", "))] vs \(enemyElement.rawValue) | Combo: \(comboLabel)")
 
+        // --- Phase 1: Player attack ---
+        // Button langsung disabled (isMonsterTurn = true) agar tidak bisa attack ganda
+        // selama seluruh sequence animasi berlangsung.
         playerAnimationState = .attack
-        layoutData.enemyHP = max(0, layoutData.enemyHP - playerDamage)
-
-        Task {
-            try? await Task.sleep(nanoseconds: 600_000_000)
-            playerAnimationState = .idle
-        }
-
-        if layoutData.enemyHP <= 0 {
-            layoutData.isEnemyDefeated = true
-            Task {
-                try? await Task.sleep(nanoseconds: 900_000_000)
-                showWaveCleared()
-                persistCurrentRun()
-            }
-            return
-        }
-
-        // --- Monster turn ---
         isMonsterTurn = true
         syncLayout()
 
         Task {
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            // T+600ms: animasi player selesai, baru apply damage ke enemy HP bar
+            // (tidak instant, agar HP bar turun setelah animasi pukulan terlihat)
+            try? await Task.sleep(for: .milliseconds(600))
+            playerAnimationState = .idle
+            layoutData.enemyHP = max(0, layoutData.enemyHP - playerDamage)
 
+            // Jika enemy kalah, selesaikan giliran tanpa monster balas serang
+            if layoutData.enemyHP <= 0 {
+                layoutData.isEnemyDefeated = true
+                try? await Task.sleep(for: .milliseconds(900))
+                showWaveCleared()
+                persistCurrentRun()
+                isMonsterTurn = false
+                syncLayout()
+                return
+            }
+
+            // T+1200ms: jeda sebelum monster balas serang (diperpanjang agar terasa ada "giliran baru")
+            try? await Task.sleep(for: .milliseconds(600))
+
+            // --- Phase 2: Monster counter-attack ---
+            // enemyAnimationState = .attack → ArenaLayout menangkap via onChange(of: enemyState)
+            // dan menampilkan: sprite serangan, flash merah, shake di sisi player
+            enemyAnimationState = .attack
+
+            // T+1500ms: apply damage ke player bersamaan puncak animasi serangan monster
+            try? await Task.sleep(for: .milliseconds(600))
             let monsterDamage = enemyAttackValue
             print("👹 MONSTER: \(monsterDamage) DMG | Element: \(enemyElement.rawValue)")
             layoutData.playerHP = max(0, layoutData.playerHP - monsterDamage)
+
+            // Reset state monster dan buka button kembali
+            enemyAnimationState = .idle
             isMonsterTurn = false
 
             if layoutData.playerHP <= 0 {
