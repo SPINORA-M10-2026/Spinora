@@ -312,14 +312,14 @@ final class GameLayoutViewModel: ObservableObject {
         Task {
             // T+600ms: animasi player selesai, baru apply damage ke enemy HP bar
             // (tidak instant, agar HP bar turun setelah animasi pukulan terlihat)
-            try? await Task.sleep(nanoseconds: 600_000_000)
+            try? await Task.sleep(for: .milliseconds(600))
             playerAnimationState = .idle
             layoutData.enemyHP = max(0, layoutData.enemyHP - playerDamage)
 
             // Jika enemy kalah, selesaikan giliran tanpa monster balas serang
             if layoutData.enemyHP <= 0 {
                 layoutData.isEnemyDefeated = true
-                try? await Task.sleep(nanoseconds: 900_000_000)
+                try? await Task.sleep(for: .milliseconds(900))
                 showWaveCleared()
                 persistCurrentRun()
                 isMonsterTurn = false
@@ -328,7 +328,7 @@ final class GameLayoutViewModel: ObservableObject {
             }
 
             // T+1200ms: jeda sebelum monster balas serang (diperpanjang agar terasa ada "giliran baru")
-            try? await Task.sleep(nanoseconds: 600_000_000)
+            try? await Task.sleep(for: .milliseconds(600))
 
             // --- Phase 2: Monster counter-attack ---
             // enemyAnimationState = .attack → ArenaLayout menangkap via onChange(of: enemyState)
@@ -336,7 +336,7 @@ final class GameLayoutViewModel: ObservableObject {
             enemyAnimationState = .attack
 
             // T+1500ms: apply damage ke player bersamaan puncak animasi serangan monster
-            try? await Task.sleep(nanoseconds: 600_000_000)
+            try? await Task.sleep(for: .milliseconds(600))
             let monsterDamage = enemyAttackValue
             print("👹 MONSTER: \(monsterDamage) DMG | Element: \(enemyElement.rawValue)")
             layoutData.playerHP = max(0, layoutData.playerHP - monsterDamage)

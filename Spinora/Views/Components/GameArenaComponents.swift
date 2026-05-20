@@ -150,22 +150,22 @@ struct ArenaLayout: View {
         .onChange(of: playerState) { _, newState in
             guard newState == .attack else { return }
             Task {
-                try? await Task.sleep(nanoseconds: UInt64(knightAttackDuration * 1_000_000_000))
+                try? await Task.sleep(for: .seconds(knightAttackDuration))
                 showAttackEffect = true
 
                 withAnimation(.easeOut(duration: 0.1)) { enemyHitFlash = true }
-                try? await Task.sleep(nanoseconds: 120_000_000)
+                try? await Task.sleep(for: .milliseconds(120))
                 withAnimation(.easeOut(duration: 0.15)) { enemyHitFlash = false }
 
                 for _ in 0..<3 {
                     withAnimation(.easeInOut(duration: 0.05)) { enemyShakeOffset = -10 }
-                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    try? await Task.sleep(for: .milliseconds(50))
                     withAnimation(.easeInOut(duration: 0.05)) { enemyShakeOffset = 10 }
-                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    try? await Task.sleep(for: .milliseconds(50))
                 }
                 withAnimation(.easeOut(duration: 0.08)) { enemyShakeOffset = 0 }
 
-                try? await Task.sleep(nanoseconds: UInt64(effectDuration * 1_000_000_000))
+                try? await Task.sleep(for: .seconds(effectDuration))
                 showAttackEffect = false
             }
         }
@@ -179,19 +179,19 @@ struct ArenaLayout: View {
 
                 // Flash merah di player
                 withAnimation(.easeOut(duration: 0.1)) { playerHitFlash = true }
-                try? await Task.sleep(nanoseconds: 120_000_000)
+                try? await Task.sleep(for: .milliseconds(120))
                 withAnimation(.easeOut(duration: 0.15)) { playerHitFlash = false }
 
                 // Shake horizontal player
                 for _ in 0..<3 {
                     withAnimation(.easeInOut(duration: 0.05)) { playerShakeOffset = -10 }
-                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    try? await Task.sleep(for: .milliseconds(50))
                     withAnimation(.easeInOut(duration: 0.05)) { playerShakeOffset = 10 }
-                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    try? await Task.sleep(for: .milliseconds(50))
                 }
                 withAnimation(.easeOut(duration: 0.08)) { playerShakeOffset = 0 }
 
-                try? await Task.sleep(nanoseconds: UInt64(effectDuration * 1_000_000_000))
+                try? await Task.sleep(for: .seconds(effectDuration))
                 showEnemyAttackEffect = false
             }
         }
