@@ -14,6 +14,8 @@ struct ArenaLayout: View {
 
     @State private var enemyFloat: CGFloat = 0
     @State private var showAttackEffect = false
+    @State private var enemyHitFlash = false
+    @State private var enemyShakeOffset: CGFloat = 0
 
     private let knightAttackDuration: TimeInterval = 0.6
     private let effectDuration: TimeInterval = 0.6
@@ -29,7 +31,7 @@ struct ArenaLayout: View {
                 fillColor: GameColor.hpRed
             )
             .frame(width: 220, height: 40)
-            .position(x: 460, y: 430)
+            .position(x: 430, y: 430)
             // .frame(width: 270, height: 30)
             .opacity(data.isEnemyDefeated ? 0.0 : 1.0)
             .animation(.easeOut(duration: 0.3), value: data.isEnemyDefeated)
@@ -54,6 +56,13 @@ struct ArenaLayout: View {
                     .frame(width: 270, height: 270)
                 }
             }
+            .overlay(
+                Rectangle()
+                    .fill(Color.red.opacity(enemyHitFlash ? 0.45 : 0))
+                    .blendMode(.screen)
+                    .allowsHitTesting(false)
+            )
+            .offset(x: enemyShakeOffset)
             .position(x: 660, y: 490 + enemyFloat)
             .scaleEffect(data.isEnemyDefeated ? 0.2 : 1.0)
             .opacity(data.isEnemyDefeated ? 0.0 : 1.0)
@@ -104,6 +113,21 @@ struct ArenaLayout: View {
             Task {
                 try? await Task.sleep(nanoseconds: UInt64(knightAttackDuration * 1_000_000_000))
                 showAttackEffect = true
+
+                // hit flash
+                withAnimation(.easeOut(duration: 0.1)) { enemyHitFlash = true }
+                try? await Task.sleep(nanoseconds: 120_000_000)
+                withAnimation(.easeOut(duration: 0.15)) { enemyHitFlash = false }
+
+                // shake knockback
+                for _ in 0..<3 {
+                    withAnimation(.easeInOut(duration: 0.05)) { enemyShakeOffset = -10 }
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    withAnimation(.easeInOut(duration: 0.05)) { enemyShakeOffset = 10 }
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+                }
+                withAnimation(.easeOut(duration: 0.08)) { enemyShakeOffset = 0 }
+
                 try? await Task.sleep(nanoseconds: UInt64(effectDuration * 1_000_000_000))
                 showAttackEffect = false
             }
