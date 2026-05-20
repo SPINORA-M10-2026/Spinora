@@ -11,6 +11,7 @@ import SwiftData
 struct GameLayoutDemoView: View {
     @AppStorage("hasCompletedFirstGameTutorial") private var hasCompletedFirstGameTutorial = false
     @State private var showTutorialOverlay = false
+    @State private var showElementGuidebookOverlay = false
     
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = GameLayoutViewModel()
@@ -20,9 +21,6 @@ struct GameLayoutDemoView: View {
             GameBattleView(
                 data: viewModel.layoutData,
                 playerState: viewModel.playerAnimationState,
-                // enemyState: dikirim dari ViewModel ke View chain agar ArenaLayout
-                // bisa trigger efek visual saat monster balas serang
-                enemyState: viewModel.enemyAnimationState,
                 enemyAppearance: viewModel.enemyAppearance,
                 onPauseTap: {
                     viewModel.showPause()
@@ -31,7 +29,7 @@ struct GameLayoutDemoView: View {
                     viewModel.attack()
                 },
                 onGuidebookTap: {
-                    viewModel.openGuidebook()
+                    showElementGuidebookOverlay = true
                 },
                 onReelTap: { index in
                     viewModel.rollReel(index: index)
@@ -69,7 +67,10 @@ struct GameLayoutDemoView: View {
                 .zIndex(100)
             }
 
-            // MARK: - First-Time Tutorial Overlay
+            if showElementGuidebookOverlay {
+                ElementGuidebookOverlayView(isPresented: $showElementGuidebookOverlay)
+                    .zIndex(800)
+            }
 
             if showTutorialOverlay {
                 GameTutorialOverlayView(isPresented: $showTutorialOverlay)
