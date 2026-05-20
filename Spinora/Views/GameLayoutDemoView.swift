@@ -17,6 +17,9 @@ struct GameLayoutDemoView: View {
             GameBattleView(
                 data: viewModel.layoutData,
                 playerState: viewModel.playerAnimationState,
+                // enemyState: dikirim dari ViewModel ke View chain agar ArenaLayout
+                // bisa trigger efek visual saat monster balas serang
+                enemyState: viewModel.enemyAnimationState,
                 enemyAppearance: viewModel.enemyAppearance,
                 onPauseTap: {
                     viewModel.showPause()

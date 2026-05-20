@@ -7,15 +7,34 @@
 
 import SwiftUI
 
+// EnemyAnimationState — enum state animasi monster.
+// Dikontrol oleh GameLayoutViewModel.attack() dan diteruskan ke ArenaLayout
+// melalui GameBattleView → ArenaLayout.enemyState.
+// .attack = monster sedang menyerang player, .idle = tidak ada aksi.
+enum EnemyAnimationState {
+    case idle
+    case attack
+}
+
 struct ArenaLayout: View {
     let data: BattleLayoutData
     var playerState: PlayerAnimationState = .idle
+    // enemyState: dikirim dari GameLayoutViewModel → GameBattleView → ArenaLayout.
+    // Berubah ke .attack saat monster balas serang, kembali .idle setelah selesai.
+    var enemyState: EnemyAnimationState = .idle
     var enemyAppearance: EnemyAppearance? = nil
 
     @State private var enemyFloat: CGFloat = 0
-    @State private var showAttackEffect = false
-    @State private var enemyHitFlash = false
-    @State private var enemyShakeOffset: CGFloat = 0
+
+    // --- Efek visual saat PLAYER menyerang ENEMY ---
+    @State private var showAttackEffect = false      // sprite animasi di sisi enemy
+    @State private var enemyHitFlash = false         // flash merah di atas enemy sprite
+    @State private var enemyShakeOffset: CGFloat = 0 // getaran horizontal enemy
+
+    // --- Efek visual saat MONSTER menyerang PLAYER ---
+    @State private var showEnemyAttackEffect = false  // sprite animasi di sisi player
+    @State private var playerHitFlash = false         // flash merah di atas player sprite
+    @State private var playerShakeOffset: CGFloat = 0 // getaran horizontal player
 
     private let knightAttackDuration: TimeInterval = 0.6
     private let effectDuration: TimeInterval = 0.6
@@ -32,15 +51,8 @@ struct ArenaLayout: View {
             )
             .frame(width: 220, height: 40)
             .position(x: 430, y: 430)
-            // .frame(width: 270, height: 30)
             .opacity(data.isEnemyDefeated ? 0.0 : 1.0)
             .animation(.easeOut(duration: 0.3), value: data.isEnemyDefeated)
-            // .position(x: 445, y: 455)
-            
-            // enemy evatar
-//            PlayerSpriteView()
-//                .frame(width: 220, height: 220)
-//                .position(x: 690, y: 427)
 
             // enemy avatar
             Group {
@@ -56,25 +68,26 @@ struct ArenaLayout: View {
                     .frame(width: 270, height: 270)
                 }
             }
+            // Flash merah di enemy saat kena serangan player
             .overlay(
                 Rectangle()
                     .fill(Color.red.opacity(enemyHitFlash ? 0.45 : 0))
                     .blendMode(.screen)
                     .allowsHitTesting(false)
             )
+            // Shake horizontal enemy saat kena serangan player
             .offset(x: enemyShakeOffset)
             .position(x: 660, y: 490 + enemyFloat)
             .scaleEffect(data.isEnemyDefeated ? 0.2 : 1.0)
             .opacity(data.isEnemyDefeated ? 0.0 : 1.0)
             .animation(.easeOut(duration: 0.6), value: data.isEnemyDefeated)
-            // .position(x: 690, y: 525 + enemyFloat)
             .onAppear {
                 withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
                     enemyFloat = -12
                 }
             }
 
-            // attack effect on enemy — plays after knight_attack finishes
+            // Sprite animasi serangan player ke enemy — muncul setelah animasi knight selesai (T+600ms)
             if showAttackEffect {
                 FrameAnimatedSprite(
                     frames: (1...6).map { "effect_atk_0\($0)" },
@@ -90,7 +103,32 @@ struct ArenaLayout: View {
             // player avatar
             PlayerSpriteView(state: playerState)
                 .frame(width: 270)
+                // Flash merah di player saat kena serangan monster
+                .overlay(
+                    Rectangle()
+                        .fill(Color.red.opacity(playerHitFlash ? 0.45 : 0))
+                        .blendMode(.screen)
+                        .allowsHitTesting(false)
+                )
+                // Shake horizontal player saat kena serangan monster
+                .offset(x: playerShakeOffset)
                 .position(x: 150, y: 820)
+
+            // Sprite animasi serangan monster ke player — muncul saat enemyState berubah ke .attack.
+            // scaleEffect(x: -1) membalik sprite secara horizontal (mirroring) agar efek tampak
+            // datang dari arah kanan (dari sisi monster), bukan kiri seperti serangan player.
+            if showEnemyAttackEffect {
+                FrameAnimatedSprite(
+                    frames: (1...6).map { "effect_atk_0\($0)" },
+                    duration: effectDuration,
+                    repeats: false,
+                    cornerRadius: 0
+                )
+                .frame(width: 270, height: 270)
+                .scaleEffect(x: -1, y: -1)
+                .position(x: 110, y: 860)
+                .id(showEnemyAttackEffect)
+            }
 
             // player HP bar
             HealthBarSlot(
@@ -108,18 +146,17 @@ struct ArenaLayout: View {
                 .frame(width: 120, height: 32)
                 .position(x: 311, y: 870)
         }
+        // Trigger efek visual di ENEMY saat player menyerang (playerState berubah ke .attack)
         .onChange(of: playerState) { _, newState in
             guard newState == .attack else { return }
             Task {
                 try? await Task.sleep(nanoseconds: UInt64(knightAttackDuration * 1_000_000_000))
                 showAttackEffect = true
 
-                // hit flash
                 withAnimation(.easeOut(duration: 0.1)) { enemyHitFlash = true }
                 try? await Task.sleep(nanoseconds: 120_000_000)
                 withAnimation(.easeOut(duration: 0.15)) { enemyHitFlash = false }
 
-                // shake knockback
                 for _ in 0..<3 {
                     withAnimation(.easeInOut(duration: 0.05)) { enemyShakeOffset = -10 }
                     try? await Task.sleep(nanoseconds: 50_000_000)
@@ -130,6 +167,32 @@ struct ArenaLayout: View {
 
                 try? await Task.sleep(nanoseconds: UInt64(effectDuration * 1_000_000_000))
                 showAttackEffect = false
+            }
+        }
+        // Trigger efek visual di PLAYER saat monster balas serang (enemyState berubah ke .attack).
+        // enemyState dikontrol oleh GameLayoutViewModel.attack() dan diteruskan dari GameBattleView.
+        .onChange(of: enemyState) { _, newState in
+            guard newState == .attack else { return }
+            Task {
+                // Sprite serangan muncul saat monster mulai menyerang
+                showEnemyAttackEffect = true
+
+                // Flash merah di player
+                withAnimation(.easeOut(duration: 0.1)) { playerHitFlash = true }
+                try? await Task.sleep(nanoseconds: 120_000_000)
+                withAnimation(.easeOut(duration: 0.15)) { playerHitFlash = false }
+
+                // Shake horizontal player
+                for _ in 0..<3 {
+                    withAnimation(.easeInOut(duration: 0.05)) { playerShakeOffset = -10 }
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+                    withAnimation(.easeInOut(duration: 0.05)) { playerShakeOffset = 10 }
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+                }
+                withAnimation(.easeOut(duration: 0.08)) { playerShakeOffset = 0 }
+
+                try? await Task.sleep(nanoseconds: UInt64(effectDuration * 1_000_000_000))
+                showEnemyAttackEffect = false
             }
         }
     }
@@ -164,9 +227,9 @@ struct HealthBarSlot: View {
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(GameColor.woodDark.opacity(0.6), lineWidth: 4) // Border gelap
+                    .strokeBorder(GameColor.woodDark.opacity(0.6), lineWidth: 4)
             )
-            .shadow(color: .black, radius: 1, x: 1, y: 1) // Kedalaman ekstra
+            .shadow(color: .black, radius: 1, x: 1, y: 1)
         }
     }
 }

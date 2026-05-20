@@ -10,6 +10,9 @@ import SwiftUI
 struct GameBattleView: View {
     let data: BattleLayoutData
     var playerState: PlayerAnimationState = .idle
+    // enemyState: diteruskan dari GameLayoutDemoView → GameBattleView → ArenaLayout
+    // agar ArenaLayout bisa trigger efek visual saat monster menyerang
+    var enemyState: EnemyAnimationState = .idle
     var enemyAppearance: EnemyAppearance? = nil
 
     let onPauseTap: () -> Void
@@ -55,7 +58,8 @@ struct GameBattleView: View {
         ZStack {
             TopFrameLayout()
 
-            ArenaLayout(data: data, playerState: playerState, enemyAppearance: enemyAppearance)
+            // enemyState diteruskan dari GameBattleView ke ArenaLayout
+            ArenaLayout(data: data, playerState: playerState, enemyState: enemyState, enemyAppearance: enemyAppearance)
 
 //            BottomFrameLayout()
 
