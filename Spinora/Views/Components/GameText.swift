@@ -24,7 +24,8 @@ struct GamePixelText: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: size, weight: .heavy, design: .monospaced))
+            .font(.custom("BoldsPixels", size: size))
+//            .font(.system(size: size, weight: .heavy, design: .monospaced))
             .textCase(.uppercase)
             .foregroundStyle(.white)
             .shadow(color: GameColor.woodDark, radius: 0, x: 2, y: 2)

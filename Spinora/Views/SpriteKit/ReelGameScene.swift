@@ -21,20 +21,23 @@ final class ReelGameScene: SKScene {
 
     var showTapToPlay: Bool = true {
         didSet {
-            if !showTapToPlay { hideTapToPlay() }
+            if !showTapToPlay {
+                hideTapToPlay()
+            }
         }
     }
 
     private var tapLabel: SKLabelNode?
-    private var panelNode = SKShapeNode()
-    private var machineBaseNode = SKSpriteNode()
 
-    private var topRowOverlayNodes: [SKShapeNode] = []
-    private var bottomRowOverlayNodes: [SKShapeNode] = []
+    private var machineTransparentNode = SKSpriteNode()
+    private var machineBaseNode = SKSpriteNode()
 
     private var topSymbols: [SKSpriteNode] = []
     private var centerSymbols: [SKSpriteNode] = []
     private var bottomSymbols: [SKSpriteNode] = []
+
+    private var usedSegmentOverlayNodes: [SKShapeNode] = []
+
     private var touchNodes: [SKShapeNode] = []
 
     override func didMove(to view: SKView) {
@@ -76,6 +79,7 @@ final class ReelGameScene: SKScene {
         guard topSymbols.count == 3,
               centerSymbols.count == 3,
               bottomSymbols.count == 3,
+              usedSegmentOverlayNodes.count == 3,
               touchNodes.count == 3 else {
             return
         }
@@ -101,45 +105,58 @@ final class ReelGameScene: SKScene {
                 setSymbolTexture(bottomSymbols[index], symbol: symbols[2])
             }
 
-            // Keep icons fully visible.
-            // Used state is already shown by the arrows, so do not dim the whole reel.
             topSymbols[index].alpha = 1.0
             centerSymbols[index].alpha = 1.0
             bottomSymbols[index].alpha = 1.0
+
+            let isUsed = isReelUsed(index)
+            usedSegmentOverlayNodes[index].isHidden = !isUsed
         }
     }
 
     func hideTapToPlay() {
-        guard let label = tapLabel else { return }
+        guard let label = tapLabel else {
+            return
+        }
+
         tapLabel = nil
+
         label.run(.sequence([
             .fadeOut(withDuration: 0.25),
             .removeFromParent()
         ]))
     }
+
     private func buildScene() {
         removeAllChildren()
 
-        topRowOverlayNodes.removeAll()
-        bottomRowOverlayNodes.removeAll()
+        tapLabel = nil
 
         topSymbols.removeAll()
         centerSymbols.removeAll()
         bottomSymbols.removeAll()
+        usedSegmentOverlayNodes.removeAll()
         touchNodes.removeAll()
 
         let centerX = size.width / 2
         let centerY = size.height / 2
 
-        // MARK: - Main Machine Border / Background
+        // MARK: - Machine Assets
 
         let machineWidth: CGFloat = 830
-        let machineHeight: CGFloat = 1640
+        let machineHeight: CGFloat = 1740
+        let machinePosition = CGPoint(x: centerX, y: centerY + 570)
+
+        machineTransparentNode = SKSpriteNode(imageNamed: "background_jackpot_element_transparent")
+        machineTransparentNode.size = CGSize(width: machineWidth, height: machineHeight)
+        machineTransparentNode.position = machinePosition
+        machineTransparentNode.zPosition = 1
+        addChild(machineTransparentNode)
 
         machineBaseNode = SKSpriteNode(imageNamed: "background_jackpot_list")
         machineBaseNode.size = CGSize(width: machineWidth, height: machineHeight)
-        machineBaseNode.position = CGPoint(x: centerX, y: centerY + 520)
-        machineBaseNode.zPosition = 1
+        machineBaseNode.position = machinePosition
+        machineBaseNode.zPosition = 10
         addChild(machineBaseNode)
 
         // MARK: - Reel Layout Values
@@ -154,8 +171,8 @@ final class ReelGameScene: SKScene {
         let iconYOffset: CGFloat = -2
 
         let topYOffset: CGFloat = 103
-        let centerYOffset: CGFloat = -4
-        let bottomYOffset: CGFloat = -122
+        let centerYOffset: CGFloat = 2
+        let bottomYOffset: CGFloat = -100
 
         let topIconSize = CGSize(width: 68, height: 68)
         let centerIconSize = CGSize(width: 104, height: 104)
@@ -164,8 +181,19 @@ final class ReelGameScene: SKScene {
         let touchWidth: CGFloat = 190
         let touchHeight: CGFloat = 330
 
+        // MARK: - Used Segment Overlay Adjustment Values
+        // Adjust these later if the used overlay is too big/small or misaligned.
+
+        let usedOverlayWidth: CGFloat = 199
+        let usedOverlayHeight: CGFloat = 330
+        let usedOverlayCornerRadius: CGFloat = 18
+        let usedOverlayXOffset: CGFloat = 0
+        let usedOverlayYOffset: CGFloat = 0
+        let usedOverlayOpacity: CGFloat = 0.42
+        let usedOverlayBorderOpacity: CGFloat = 0.0
+        let usedOverlayBorderWidth: CGFloat = 0
+
         // MARK: - Icon Placement
-        // Icons are placed first.
 
         for index in 0..<3 {
             let x = reelXPositions[index] + iconXOffset
@@ -196,7 +224,34 @@ final class ReelGameScene: SKScene {
             bottomSymbols.append(bottomSymbol)
         }
 
-        tapLabel = nil
+        // MARK: - Used Segment Overlay
+        // This appears only after a reel section has been rolled.
+        // No text label is used.
+
+        for index in 0..<3 {
+            let overlayNode = SKShapeNode(
+                rectOf: CGSize(
+                    width: usedOverlayWidth,
+                    height: usedOverlayHeight
+                ),
+                cornerRadius: usedOverlayCornerRadius
+            )
+
+            overlayNode.fillColor = UIColor.black.withAlphaComponent(usedOverlayOpacity)
+            overlayNode.lineWidth = usedOverlayBorderWidth
+            overlayNode.position = CGPoint(
+                x: reelXPositions[index] + usedOverlayXOffset,
+                y: centerY + usedOverlayYOffset
+            )
+            overlayNode.zPosition = 5
+            overlayNode.isHidden = true
+
+            addChild(overlayNode)
+            usedSegmentOverlayNodes.append(overlayNode)
+        }
+
+        // MARK: - Tap Label
+
         if showTapToPlay {
             let label = makeLabel(text: "TAP TO PLAY!", fontSize: 40)
             label.position = CGPoint(x: centerX, y: centerY)
@@ -205,61 +260,6 @@ final class ReelGameScene: SKScene {
             addChild(label)
             tapLabel = label
         }
-
-        // MARK: - Full Top/Bottom Row Dark Overlays
-        // These are above the icons, so the whole top/bottom rows are dimmed.
-        // The middle/result row stays clear.
-
-        let rowOverlayWidth: CGFloat = 205
-        let topRowOverlayHeight: CGFloat = 103
-        let bottomRowOverlayHeight: CGFloat = 116
-        let rowOverlayColor = UIColor.black.withAlphaComponent(0.22)
-
-        for index in 0..<3 {
-            let x = reelXPositions[index]
-
-            let topOverlay = SKShapeNode(
-                rectOf: CGSize(
-                    width: rowOverlayWidth,
-                    height: topRowOverlayHeight
-                ),
-                cornerRadius: 0
-            )
-            topOverlay.fillColor = rowOverlayColor
-            topOverlay.strokeColor = .clear
-            topOverlay.position = CGPoint(
-                x: x,
-                y: centerY + topYOffset
-            )
-            topOverlay.zPosition = 35
-            addChild(topOverlay)
-            topRowOverlayNodes.append(topOverlay)
-
-            let bottomOverlay = SKShapeNode(
-                rectOf: CGSize(
-                    width: rowOverlayWidth,
-                    height: bottomRowOverlayHeight
-                ),
-                cornerRadius: 0
-            )
-            bottomOverlay.fillColor = rowOverlayColor
-            bottomOverlay.strokeColor = .clear
-            bottomOverlay.position = CGPoint(
-                x: x,
-                y: centerY + bottomYOffset
-            )
-            bottomOverlay.zPosition = 35
-            addChild(bottomOverlay)
-            bottomRowOverlayNodes.append(bottomOverlay)
-        }
-
-        // MARK: - Tap Label
-
-        let tapLabel = makeLabel(text: "TAP TO PLAY!", fontSize: 42)
-        tapLabel.position = CGPoint(x: centerX, y: centerY + 2)
-        tapLabel.zPosition = 40
-        tapLabel.alpha = 0.92
-        addChild(tapLabel)
 
         // MARK: - Touch Areas
 

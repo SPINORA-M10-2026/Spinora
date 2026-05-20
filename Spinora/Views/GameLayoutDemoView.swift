@@ -9,6 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct GameLayoutDemoView: View {
+    @AppStorage("hasCompletedFirstGameTutorial") private var hasCompletedFirstGameTutorial = false
+    @State private var showTutorialOverlay = false
+    
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = GameLayoutViewModel()
 
@@ -63,11 +66,24 @@ struct GameLayoutDemoView: View {
                         viewModel.backToPause()
                     }
                 )
+                .zIndex(100)
+            }
+
+            // MARK: - First-Time Tutorial Overlay
+
+            if showTutorialOverlay {
+                GameTutorialOverlayView(isPresented: $showTutorialOverlay)
+                    .zIndex(999)
             }
         }
         .task {
             viewModel.configurePersistenceIfNeeded(modelContext: modelContext)
             viewModel.loadSavedRunIfAvailable()
+
+            // FINAL: only show tutorial once after first download/install.
+            if hasCompletedFirstGameTutorial == false {
+                showTutorialOverlay = true
+            }
         }
     }
 }

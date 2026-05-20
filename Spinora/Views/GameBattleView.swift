@@ -23,6 +23,14 @@ struct GameBattleView: View {
     private let designWidth: CGFloat = 832
     private let designHeight: CGFloat = 1800
 
+    @State private var activeAnimation: ActiveAnimationType? = nil
+    @State private var dismissTask: Task<Void, Never>? = nil
+
+    enum ActiveAnimationType {
+        case double
+        case jackpot
+    }
+
     var body: some View {
         GeometryReader { geo in
             let screenWidth = geo.size.width
@@ -52,11 +60,46 @@ struct GameBattleView: View {
             .frame(width: screenWidth, height: screenHeight)
         }
         .ignoresSafeArea()
+        .onChange(of: data.lastRolledIndex) { oldValue, newValue in
+            if newValue == nil {
+                withAnimation {
+                    activeAnimation = nil
+                }
+            } else {
+                // Wait for the 0.5s reel spin animation to finish before checking results
+                dismissTask?.cancel()
+                Task {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    checkWeaknessAnimation()
+                }
+            }
+        }
+        .onDisappear {
+            dismissTask?.cancel()
+            dismissTask = nil
+        }
     }
 
     private var gameCanvas: some View {
         ZStack {
-            TopFrameLayout()
+            
+            EnvironmentBackgroundView()
+            
+            
+            if let animation = activeAnimation {
+                switch animation {
+                case .double:
+                    FrameAnimation.double()
+                        .position(x: designWidth/2, y: designHeight/2 )
+                        .transition(.opacity)
+                case .jackpot:
+                    FrameAnimation.jackpot()
+                        .position(x: designWidth/2, y: designHeight/2)
+                        .transition(.opacity)
+                }
+            }
+            
+            WoodBackgroundView()
 
             // enemyState diteruskan dari GameBattleView ke ArenaLayout
             ArenaLayout(data: data, playerState: playerState, enemyState: enemyState, enemyAppearance: enemyAppearance)
@@ -85,5 +128,55 @@ struct GameBattleView: View {
         }
         .frame(width: designWidth, height: designHeight)
         .clipped()
+    }
+
+    private func checkWeaknessAnimation() {
+        guard let enemyElement = enemyAppearance?.bodyElement else { return }
+
+        // Determine weakness of the enemy element
+        let weaknessElement: Element
+        switch enemyElement {
+        case .fire:
+            weaknessElement = .water
+        case .water:
+            weaknessElement = .earth
+        case .earth:
+            weaknessElement = .fire
+        }
+
+        // Count how many middle symbols match the weakness
+        var matchingCount = 0
+        for column in data.reelColumns {
+            if column.count > 1 {
+                let middleSymbol = column[1]
+                if middleSymbol == weaknessElement.rawValue {
+                    matchingCount += 1
+                }
+            }
+        }
+
+        // Trigger the correct animation based on count
+        withAnimation {
+            if matchingCount == 3 {
+                activeAnimation = .jackpot
+                startDismissTimer()
+            } else if matchingCount == 2 {
+                activeAnimation = .double
+                startDismissTimer()
+            } else {
+                activeAnimation = nil
+            }
+        }
+    }
+
+    private func startDismissTimer() {
+        dismissTask?.cancel()
+        dismissTask = Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // Keep animation on screen for 2 seconds
+            guard !Task.isCancelled else { return }
+            withAnimation {
+                activeAnimation = nil
+            }
+        }
     }
 }

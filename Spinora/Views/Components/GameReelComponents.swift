@@ -64,9 +64,9 @@ struct ReelLayout: View {
                     .scaledToFit()
                     .frame(height: 40)
 
-                GamePixelText(cleanRerollText, size: 32)
+                GamePixelText(cleanRerollText, size: 36)
             }
-            .position(x: 416, y: 1195)
+            .position(x: 416, y: 1200)
 
             // Down arrows
             // ZStack {
@@ -89,7 +89,7 @@ struct ReelLayout: View {
                 )
                 .position(
                     x: reelXPosition(index),
-                    y: 1288
+                    y: 1250
                 )
             }
 
@@ -121,7 +121,7 @@ struct ReelLayout: View {
                 )
                 .position(
                     x: reelXPosition(index),
-                    y: 1730
+                    y: 1740
                 )
             }
         }
@@ -185,9 +185,11 @@ struct BlinkingReelArrow: View {
     let isBright: Bool
 
     private let arrowSize: CGFloat = 52
+    private let arrowFrameSize: CGFloat = 70
 
     var body: some View {
         GamePixelText(symbol, size: arrowSize)
+            .frame(width: arrowFrameSize, height: arrowFrameSize)
             .opacity(currentOpacity)
             .scaleEffect(currentScale)
             .animation(.easeInOut(duration: 0.5), value: isBright)
