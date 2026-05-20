@@ -370,10 +370,14 @@ final class GameLayoutViewModel: ObservableObject {
             // Trigger animasi mati player — PlayerSpriteView akan memainkan deadFrames
             playerAnimationState = .dead
 
-            // Tunda overlay konfirmasi agar animasi mati sempat selesai (durasi 1.2s)
             Task {
+                // Tunda overlay konfirmasi agar animasi mati sempat selesai (durasi 1.2s)
                 try? await Task.sleep(for: .seconds(1.4))
                 showRestartWaveConfirmation()
+                // Setelah animasi dead selesai + 1 detik, kembali ke idle
+                // (terlihat di belakang overlay sebelum player memilih retry)
+                try? await Task.sleep(for: .seconds(1.0))
+                playerAnimationState = .idle
             }
         } catch {
             print("Failed to mark player dead:", error)
