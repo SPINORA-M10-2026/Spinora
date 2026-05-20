@@ -21,6 +21,7 @@ struct GameLayoutDemoView: View {
             GameBattleView(
                 data: viewModel.layoutData,
                 playerState: viewModel.playerAnimationState,
+                enemyState: viewModel.enemyAnimationState,
                 enemyAppearance: viewModel.enemyAppearance,
                 onPauseTap: {
                     viewModel.showPause()
