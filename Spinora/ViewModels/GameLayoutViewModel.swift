@@ -507,7 +507,7 @@ final class GameLayoutViewModel: ObservableObject {
     
     func selectReward(_ reward: RewardChoice) {
         let waveStr = layoutData.waveText
-        let currentWaveVal = Int(waveStr) ?? 1
+        let targetWave = (Int(waveStr) ?? 1) + 1
         
         let hpPercent = (reward == .hp) ? hpRewardPercent : 0
         let atkPercent = (reward == .attack) ? atkRewardPercent : 0
@@ -515,10 +515,10 @@ final class GameLayoutViewModel: ObservableObject {
         let currentMaxHP = layoutData.playerMaxHP
         let currentATK = currentAttackValue()
         
-        let newHP = calculateNewHP(current: currentMaxHP, wave: currentWaveVal, rewardPercent: hpPercent)
+        let newHP = calculateNewHP(current: currentMaxHP, wave: targetWave, rewardPercent: hpPercent)
         let hpIncrease = newHP - currentMaxHP
         
-        let newATK = calculateNewATK(current: currentATK, wave: currentWaveVal, rewardPercent: atkPercent)
+        let newATK = calculateNewATK(current: currentATK, wave: targetWave, rewardPercent: atkPercent)
         let atkIncrease = newATK - currentATK
         
         accumulatedBonusHP += hpIncrease
