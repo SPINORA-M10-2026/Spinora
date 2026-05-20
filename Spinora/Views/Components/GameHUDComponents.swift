@@ -44,25 +44,24 @@ struct HUDLayout: View {
 }
 
 
-// main frame (header, box slot, dll)
-struct TopFrameLayout: View {
+// background map
+struct EnvironmentBackgroundView: View {
     var body: some View {
-        ZStack {
-            // backround map
-            Image("background_environment")
-                .resizable()
-//                .frame(width: 832, height: 1750)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .position(x: 416, y: 875)
-                .zIndex(5)
-            
-            // backround top & bottom bar (wood)
-            Image("background_wood")
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-                .zIndex(10)
-        }
+        Image("background_environment")
+            .resizable()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .position(x: 416, y: 875)
     }
 }
+
+// background top & bottom bar wood
+struct WoodBackgroundView: View {
+    var body: some View {
+        Image("background_wood")
+            .resizable()
+            .scaledToFill()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+    }
+}
+
