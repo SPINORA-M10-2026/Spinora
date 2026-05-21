@@ -554,6 +554,9 @@ final class GameLayoutViewModel: ObservableObject {
         accumulatedBonusAttack += atkIncrease
         layoutData.playerAttackText = "\(newATK)"
         
+        layoutData.statIncreaseText = "+\(hpIncrease) HP\n+\(atkIncrease) ATK"
+        layoutData.statIncreaseTrigger = UUID()
+        
         do {
             if hpIncrease > 0 {
                 try runUpgradeRepository?.addRunUpgrade(

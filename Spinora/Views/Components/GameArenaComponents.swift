@@ -39,6 +39,11 @@ struct ArenaLayout: View {
     private let knightAttackDuration: TimeInterval = 0.6
     private let effectDuration: TimeInterval = 0.6
 
+    // --- Efek visual floating stat text ---
+    @State private var showFloatingText = false
+    @State private var floatingTextY: CGFloat = 750
+    @State private var floatingTextOpacity: Double = 0.0
+
     var body: some View {
         ZStack {
             // enemy HP bar
@@ -113,6 +118,15 @@ struct ArenaLayout: View {
                 // Shake horizontal player saat kena serangan monster
                 .offset(x: playerShakeOffset)
                 .position(x: 150, y: 820)
+                
+            if showFloatingText, let text = data.statIncreaseText {
+                GamePixelText(text, size: 24)
+                    .foregroundStyle(.green)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: .black, radius: 2, x: 1, y: 1)
+                    .position(x: 150, y: floatingTextY)
+                    .opacity(floatingTextOpacity)
+            }
 
             // Sprite animasi serangan monster ke player — muncul saat enemyState berubah ke .attack.
             // scaleEffect(x: -1) membalik sprite secara horizontal (mirroring) agar efek tampak
@@ -193,6 +207,30 @@ struct ArenaLayout: View {
 
                 try? await Task.sleep(for: .seconds(effectDuration))
                 showEnemyAttackEffect = false
+            }
+        }
+        .onChange(of: data.statIncreaseTrigger) { _, newValue in
+            guard newValue != nil else { return }
+            
+            // Reset to starting position
+            floatingTextY = 720
+            floatingTextOpacity = 1.0
+            showFloatingText = true
+            
+            // Animate float up selama 1 detik
+            withAnimation(.easeOut(duration: 1.0)) {
+                floatingTextY = 680
+            }
+            
+            // Setelah naik 1 detik, berhenti 4 detik, lalu fade out
+            withAnimation(.easeIn(duration: 0.5).delay(4.0)) {
+                floatingTextOpacity = 0.0
+            }
+            
+            // Clean up setelah seluruh animasi selesai (1s + 4s + 0.5s = 5.5s)
+            Task {
+                try? await Task.sleep(for: .milliseconds(5500))
+                showFloatingText = false
             }
         }
     }
