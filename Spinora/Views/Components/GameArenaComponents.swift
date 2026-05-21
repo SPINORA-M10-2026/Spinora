@@ -125,7 +125,7 @@ struct ArenaLayout: View {
                 .position(x: 150, y: 820)
                 
             if showFloatingText, let text = data.statIncreaseText {
-                GamePixelText(text, size: 24)
+                GamePixelText(text, size: 32)
                     .foregroundStyle(.green)
                     .multilineTextAlignment(.center)
                     .shadow(color: .black, radius: 2, x: 1, y: 1)
