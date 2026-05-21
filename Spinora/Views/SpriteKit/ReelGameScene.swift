@@ -190,7 +190,7 @@ final class ReelGameScene: SKScene {
         let usedOverlayXOffset: CGFloat = 0
         let usedOverlayYOffset: CGFloat = 0
         let usedOverlayOpacity: CGFloat = 0.42
-        let usedOverlayBorderOpacity: CGFloat = 0.0
+        let _: CGFloat = 0.0
         let usedOverlayBorderWidth: CGFloat = 0
 
         // MARK: - Icon Placement
