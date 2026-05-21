@@ -34,6 +34,15 @@ struct ArenaLayout: View {
     @State private var playerHitFlash = false         // flash merah di atas player sprite
     @State private var playerShakeOffset: CGFloat = 0 // getaran horizontal player
 
+    // --- Damage popup ---
+    @State private var showPlayerDamagePopup = false
+    @State private var playerDamagePopupValue = 0
+    @State private var playerDamagePopupID = 0
+
+    @State private var showMonsterDamagePopup = false
+    @State private var monsterDamagePopupValue = 0
+    @State private var monsterDamagePopupID = 0
+
     private let knightAttackDuration: TimeInterval = 0.6
     private let effectDuration: TimeInterval = 0.6
 
@@ -124,6 +133,13 @@ struct ArenaLayout: View {
                     .opacity(floatingTextOpacity)
             }
 
+            // Popup damage ke enemy saat player menyerang
+            if showPlayerDamagePopup {
+                DamagePopupView(value: playerDamagePopupValue, shadowColor: .red)
+                    .position(x: 660, y: 390)
+                    .id(playerDamagePopupID)
+            }
+
             // Sprite animasi serangan monster ke player — muncul saat enemyState berubah ke .attack.
             // scaleEffect(x: -1) membalik sprite secara horizontal (mirroring) agar efek tampak
             // datang dari arah kanan (dari sisi monster), bukan kiri seperti serangan player.
@@ -138,6 +154,13 @@ struct ArenaLayout: View {
                 .scaleEffect(x: -1, y: -1)
                 .position(x: 110, y: 860)
                 .id(showEnemyAttackEffect)
+            }
+
+            // Popup damage ke player saat monster menyerang
+            if showMonsterDamagePopup {
+                DamagePopupView(value: monsterDamagePopupValue, shadowColor: .orange)
+                    .position(x: 150, y: 760)
+                    .id(monsterDamagePopupID)
             }
 
             // player HP bar
@@ -159,6 +182,7 @@ struct ArenaLayout: View {
         // Trigger efek visual di ENEMY saat player menyerang (playerState berubah ke .attack)
         .onChange(of: playerState) { _, newState in
             guard newState == .attack else { return }
+            let dmg = data.lastPlayerDamage
             Task {
                 try? await Task.sleep(for: .seconds(knightAttackDuration))
                 showAttackEffect = true
@@ -175,14 +199,20 @@ struct ArenaLayout: View {
                 }
                 withAnimation(.easeOut(duration: 0.08)) { enemyShakeOffset = 0 }
 
+                playerDamagePopupValue = dmg
+                playerDamagePopupID += 1
+                showPlayerDamagePopup = true
                 try? await Task.sleep(for: .seconds(effectDuration))
                 showAttackEffect = false
+                try? await Task.sleep(for: .milliseconds(1000))
+                showPlayerDamagePopup = false
             }
         }
         // Trigger efek visual di PLAYER saat monster balas serang (enemyState berubah ke .attack).
         // enemyState dikontrol oleh GameLayoutViewModel.attack() dan diteruskan dari GameBattleView.
         .onChange(of: enemyState) { _, newState in
             guard newState == .attack else { return }
+            let dmg = data.lastMonsterDamage
             Task {
                 // Sprite serangan muncul saat monster mulai menyerang
                 showEnemyAttackEffect = true
@@ -201,8 +231,13 @@ struct ArenaLayout: View {
                 }
                 withAnimation(.easeOut(duration: 0.08)) { playerShakeOffset = 0 }
 
+                monsterDamagePopupValue = dmg
+                monsterDamagePopupID += 1
+                showMonsterDamagePopup = true
                 try? await Task.sleep(for: .seconds(effectDuration))
                 showEnemyAttackEffect = false
+                try? await Task.sleep(for: .milliseconds(300))
+                showMonsterDamagePopup = false
             }
         }
         .onChange(of: data.statIncreaseTrigger) { _, newValue in
@@ -277,10 +312,34 @@ struct AttackStatSlot: View {
                 .resizable()
                 .scaledToFill()
 
-            GamePixelText(text, size: 17)
+            GamePixelText(text, size: 25)
                 .padding(.leading, 18)
         }
         .clipped()
     }
 }
+
+private struct DamagePopupView: View {
+    let value: Int
+    let shadowColor: Color
+
+    @State private var offsetY: CGFloat = 0
+    @State private var opacity: Double = 1
+
+    var body: some View {
+        Text("-\(value)")
+            .font(.custom("BoldsPixels", size: 44))
+            .foregroundStyle(.white)
+            .shadow(color: shadowColor, radius: 0, x: 2, y: 2)
+            .offset(y: offsetY)
+            .opacity(opacity)
+            .onAppear {
+                withAnimation(.easeOut(duration: 1.5)) {
+                    offsetY = -90
+                    opacity = 0
+                }
+            }
+    }
+}
+
 

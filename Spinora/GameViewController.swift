@@ -63,7 +63,7 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let rootView = GameLayoutDemoView()
+        let rootView = GameRootView()
             .modelContainer(AppModelContainer.shared)
 
         let hostingController = UIHostingController(rootView: rootView)

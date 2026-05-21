@@ -30,6 +30,9 @@ struct BattleLayoutData {
     var statIncreaseText: String? = nil
     var statIncreaseTrigger: UUID? = nil
 
+    var lastPlayerDamage: Int = 0
+    var lastMonsterDamage: Int = 0
+
     static let preview = BattleLayoutData(
         waveText: "001",
         playerHP: 100,
