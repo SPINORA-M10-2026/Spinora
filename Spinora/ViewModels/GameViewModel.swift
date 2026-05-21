@@ -35,7 +35,16 @@ final class GameViewModel: ObservableObject {
 
     // MARK: - Init
 
-    init(reelManager: ReelManager = ReelManager()) {
+    init() {
+        self.reelManager = ReelManager()
+        self.player = Character(hp: 100, maxHp: 100, baseAttack: 80, element: nil)
+        let (firstMonster, firstAppearance) = Self.makeMonsterAndAppearance(wave: 1)
+        self.monster = firstMonster
+        self.enemyAppearance = firstAppearance
+        self.reelState = reelManager.makeNewTurnState()
+    }
+
+    init(reelManager: ReelManager) {
         self.reelManager = reelManager
         self.player = Character(hp: 100, maxHp: 100, baseAttack: 80, element: nil)
         let (firstMonster, firstAppearance) = Self.makeMonsterAndAppearance(wave: 1)
