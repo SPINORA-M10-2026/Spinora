@@ -46,7 +46,14 @@ struct ReelLayout: View {
         ZStack {
             // MARK: - Guidebook Button
 
-            Button(action: onGuidebookTap) {
+            Button(action: {
+                
+                SoundFeedback.shared.playButtonPressSound()
+                ExploreHaptic.shared.play(.buttonClickHeavy)
+
+                onGuidebookTap()
+            }) {
+                
                 Image("button_element_book")
                     .resizable()
                     .scaledToFit()

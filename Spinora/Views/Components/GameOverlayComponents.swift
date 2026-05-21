@@ -34,7 +34,11 @@ struct RewardCardView: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            SoundFeedback.shared.playButtonPressSound()
+            ExploreHaptic.shared.play(.buttonClickHeavy)
+            action()
+        }) {
             ZStack {
                 Image(isSelected ? pressIcon : icon)
                     .resizable()
@@ -98,7 +102,11 @@ struct MenuPauseButton: View {
 
     var body: some View {
         
-        Button(action: action) {
+        Button(action: {
+            SoundFeedback.shared.playButtonPressSound()
+            ExploreHaptic.shared.play(.buttonClickHeavy)
+            action()
+        }) {
 
         }
         .buttonStyle(
@@ -118,7 +126,11 @@ struct MenuApprovalPauseButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            SoundFeedback.shared.playButtonPressSound()
+            ExploreHaptic.shared.play(.buttonClickHeavy)
+            action()
+        }) {
 //            Image(image)
 //                .resizable()
 //                .scaledToFit()
@@ -140,7 +152,11 @@ struct SquareChoiceButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            SoundFeedback.shared.playButtonPressSound()
+            ExploreHaptic.shared.play(.buttonClickHeavy)
+            action()
+        }) {
             AssetSlot(
                 "choice_button",
                 fill: GameColor.wood,

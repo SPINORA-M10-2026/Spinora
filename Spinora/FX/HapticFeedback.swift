@@ -7,6 +7,21 @@
 
 import UIKit
 
+/*
+
+HOW TO USED IT?
+
+Button("Roll") {
+                SoundFeedback.shared.rollPressSound()
+                ExploreHaptic.shared.playSlotRollRandom(duration: rollDuration)
+
+                or
+
+                exploreHaptic.shared.play(.attack)
+            } 
+
+*/
+
 enum GameHapticAction {
     case buttonClickLight
     case buttonClickMedium
@@ -22,9 +37,9 @@ enum GameHapticAction {
     case jackpot
 }
 
-final class exploreHaptic {
+final class ExploreHaptic {
     
-    static let shared = exploreHaptic()
+    static let shared = ExploreHaptic()
     
     private init() {}
     
@@ -41,7 +56,7 @@ final class exploreHaptic {
             impact(.heavy)
             
         case .slotRoll:
-            playSlotRollRandom(duration: 4.0)
+            playSlotRollRandom(duration: 1.0)
             
         case .slotStop:
             impact(.medium)

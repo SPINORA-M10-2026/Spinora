@@ -30,7 +30,14 @@ struct HUDLayout: View {
             .position(x: 202, y: 164)
 
             // icon / button pause
-            Button(action: onPauseTap) {
+            Button(action: {
+
+                SoundFeedback.shared.playButtonPressSound()
+                ExploreHaptic.shared.play(.buttonClickHeavy)
+
+                onPauseTap()
+            }) {
+
                 Image("button_pause")
                     .resizable()
                     .scaledToFit()

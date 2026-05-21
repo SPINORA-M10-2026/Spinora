@@ -194,7 +194,6 @@ final class GameLayoutViewModel: ObservableObject {
     func rollReel(index: Int) {
         guard overlay == nil else { return }
         guard !isMonsterTurn else { return }
-        hasDismissedTapToPlay = true
         
         guard let result = reelManager.createRollResult(
             index: index,
@@ -205,6 +204,12 @@ final class GameLayoutViewModel: ObservableObject {
         ) else {
             return
         }
+        
+        // Play roll sound and haptic
+        SoundFeedback.shared.rollPressSound()
+        ExploreHaptic.shared.play(.slotRoll)
+        
+        hasDismissedTapToPlay = true
         
         isRolling = true
         layoutData.lastRolledIndex = nil
