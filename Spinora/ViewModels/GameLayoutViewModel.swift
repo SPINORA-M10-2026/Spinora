@@ -318,11 +318,26 @@ final class GameLayoutViewModel: ObservableObject {
 
         Task {
             // T+600ms: animasi player selesai, baru apply damage ke enemy HP bar
-            // (tidak instant, agar HP bar turun setelah animasi pukulan terlihat)
             try? await Task.sleep(for: .milliseconds(600))
             playerAnimationState = .idle
             layoutData.enemyHP = max(0, layoutData.enemyHP - playerDamage)
-            SoundFeedback.shared.hitPressSound()
+            
+            // --- Healing dari sisa reroll ---
+            let unusedRolls = remainingRollCount()
+            var healAmount = 0
+            if unusedRolls == 1 {
+                healAmount = Int(Double(layoutData.playerMaxHP) * 0.02)
+            } else if unusedRolls == 2 {
+                healAmount = Int(Double(layoutData.playerMaxHP) * 0.03)
+            } else if unusedRolls >= 3 {
+                healAmount = Int(Double(layoutData.playerMaxHP) * 0.05)
+            }
+            
+            if healAmount > 0 {
+                layoutData.playerHP = min(layoutData.playerMaxHP, layoutData.playerHP + healAmount)
+                layoutData.statIncreaseText = "+\(healAmount) Heal"
+                layoutData.statIncreaseTrigger = UUID()
+            }
 
             // Jika enemy kalah, selesaikan giliran tanpa monster balas serang
             if layoutData.enemyHP <= 0 {

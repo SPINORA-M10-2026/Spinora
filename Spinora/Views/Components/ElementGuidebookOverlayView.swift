@@ -224,3 +224,9 @@ struct ElementGuidebookOverlayView: View {
 struct ElementComboGuidePage {
     let assetName: String
 }
+
+#Preview("Element Guidebook Overlay") {
+    ElementGuidebookOverlayView(
+        isPresented: .constant(true)
+    )
+}
