@@ -24,7 +24,7 @@ struct ElementGuidebookOverlayView: View {
     // MARK: - Easy Adjustment Values
 
     private let backgroundWidthRatio: CGFloat = 0.92
-    private let maxBackgroundWidth: CGFloat = 560
+    private let maxBackgroundWidth: CGFloat = 350
     private let backgroundHeightRatio: CGFloat = 1.34
 
     private let contentWidthRatio: CGFloat = 0.78
@@ -62,19 +62,13 @@ struct ElementGuidebookOverlayView: View {
 
     private func guidebookContent(in geometry: GeometryProxy) -> some View {
         let backgroundWidth = guidebookWidth(in: geometry)
+        let backgroundHeight = guidebookHeight(in: geometry)
 
         return ZStack {
-            // MARK: - Alert Background
-
             Image("alert_element_background_combo")
                 .resizable()
                 .interpolation(.none)
-                .frame(
-                    width: backgroundWidth,
-                    height: guidebookHeight(in: geometry)
-                )
-
-            // MARK: - Combo Content Page
+                .frame(width: backgroundWidth, height: backgroundHeight)
 
             Image(currentPage.assetName)
                 .resizable()
