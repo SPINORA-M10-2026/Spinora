@@ -84,21 +84,21 @@ struct GameBattleView: View {
         ZStack {
             
             EnvironmentBackgroundView()
-            
-            
+
             if let animation = activeAnimation {
                 switch animation {
                 case .double:
                     FrameAnimation.double()
-                        .position(x: designWidth/2, y: designHeight/2 )
+                        .position(x: designWidth/2, y: designHeight/2)
                         .transition(.opacity)
+
                 case .jackpot:
                     FrameAnimation.jackpot()
                         .position(x: designWidth/2, y: designHeight/2)
                         .transition(.opacity)
                 }
             }
-            
+
             WoodBackgroundView()
 
             // enemyState diteruskan dari GameBattleView ke ArenaLayout
