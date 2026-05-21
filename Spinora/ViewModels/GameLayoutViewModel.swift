@@ -328,9 +328,8 @@ final class GameLayoutViewModel: ObservableObject {
                 return
             }
 
-            // T+1200ms: jeda sebelum monster balas serang (diperpanjang agar terasa ada "giliran baru")
-            try? await Task.sleep(for: .milliseconds(600))
-
+            // jeda sebelum monster balas serang agar player sempat melihat hasil serangannya
+            try? await Task.sleep(for: .milliseconds(950))
             // --- Phase 2: Monster counter-attack ---
             // enemyAnimationState = .attack → ArenaLayout menangkap via onChange(of: enemyState)
             // dan menampilkan: sprite serangan, flash merah, shake di sisi player
