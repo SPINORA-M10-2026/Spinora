@@ -27,6 +27,9 @@ struct BattleLayoutData {
     var isEnemyDefeated: Bool = false
     var showTapToPlay: Bool = true
 
+    var lastPlayerDamage: Int = 0
+    var lastMonsterDamage: Int = 0
+
     static let preview = BattleLayoutData(
         waveText: "001",
         playerHP: 100,

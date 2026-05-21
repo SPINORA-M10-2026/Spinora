@@ -306,6 +306,7 @@ final class GameLayoutViewModel: ObservableObject {
         // --- Phase 1: Player attack ---
         // Button langsung disabled (isMonsterTurn = true) agar tidak bisa attack ganda
         // selama seluruh sequence animasi berlangsung.
+        layoutData.lastPlayerDamage = playerDamage
         playerAnimationState = .attack
         isMonsterTurn = true
         syncLayout()
@@ -329,10 +330,11 @@ final class GameLayoutViewModel: ObservableObject {
             }
 
             // jeda sebelum monster balas serang agar player sempat melihat hasil serangannya
-            try? await Task.sleep(for: .milliseconds(950))
+            try? await Task.sleep(for: .milliseconds(1000))
             // --- Phase 2: Monster counter-attack ---
             // enemyAnimationState = .attack → ArenaLayout menangkap via onChange(of: enemyState)
             // dan menampilkan: sprite serangan, flash merah, shake di sisi player
+            layoutData.lastMonsterDamage = enemyAttackValue
             enemyAnimationState = .attack
 
             // T+1500ms: apply damage ke player bersamaan puncak animasi serangan monster
