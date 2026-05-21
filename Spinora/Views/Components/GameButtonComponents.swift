@@ -15,7 +15,7 @@ struct BottomButtonLayout: View {
         ZStack {
             Button(action: {
                 
-                // SoundFeedback.shared.playButtonPressSound()
+                SoundFeedback.shared.attackPressSound()
                 ExploreHaptic.shared.play(.buttonClickHeavy)
 
                 onAttackTap()
