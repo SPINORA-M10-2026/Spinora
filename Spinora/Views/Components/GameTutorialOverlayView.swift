@@ -5,11 +5,6 @@
 //  Created by Stanley Young on 20/05/26.
 //
 
-//
-//  GameTutorialOverlayView.swift
-//  Spinora
-//
-
 import SwiftUI
 
 struct GameTutorialOverlayView: View {

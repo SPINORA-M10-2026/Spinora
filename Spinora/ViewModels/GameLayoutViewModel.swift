@@ -59,7 +59,8 @@ final class GameLayoutViewModel: ObservableObject {
     private var hasDismissedTapToPlay: Bool = false
 
     private var enemyAttackValue: Int { 8 + currentWave * 3 }
-    
+//    private var enemyAttackValue: Int { 9999 }
+
     init() {
         startNewTurn()
     }
@@ -332,9 +333,8 @@ final class GameLayoutViewModel: ObservableObject {
                 return
             }
 
-            // T+1200ms: jeda sebelum monster balas serang (diperpanjang agar terasa ada "giliran baru")
-            try? await Task.sleep(for: .milliseconds(600))
-
+            // jeda sebelum monster balas serang agar player sempat melihat hasil serangannya
+            try? await Task.sleep(for: .milliseconds(950))
             // --- Phase 2: Monster counter-attack ---
             // enemyAnimationState = .attack → ArenaLayout menangkap via onChange(of: enemyState)
             // dan menampilkan: sprite serangan, flash merah, shake di sisi player
@@ -366,14 +366,24 @@ final class GameLayoutViewModel: ObservableObject {
         guard let savedRunRepository else {
             return
         }
-        
+
         do {
             try savedRunRepository.markPlayerDead()
-            
+
             layoutData.playerHP = 0
             layoutData.canAttack = false
-            
-            showRestartWaveConfirmation()
+            // Trigger animasi mati player — PlayerSpriteView akan memainkan deadFrames
+            playerAnimationState = .dead
+
+            Task {
+                // Tunda overlay konfirmasi agar animasi mati sempat selesai (durasi 1.2s)
+                try? await Task.sleep(for: .seconds(1.4))
+                showRestartWaveConfirmation()
+                // Setelah animasi dead selesai + 1 detik, kembali ke idle
+                // (terlihat di belakang overlay sebelum player memilih retry)
+                try? await Task.sleep(for: .seconds(1.0))
+                playerAnimationState = .idle
+            }
         } catch {
             print("Failed to mark player dead:", error)
         }
@@ -543,10 +553,13 @@ final class GameLayoutViewModel: ObservableObject {
         
         accumulatedBonusHP += hpIncrease
         layoutData.playerMaxHP = newHP
-        layoutData.playerHP = newHP
+        layoutData.playerHP += hpIncrease
         
         accumulatedBonusAttack += atkIncrease
         layoutData.playerAttackText = "\(newATK)"
+        
+        layoutData.statIncreaseText = "+\(hpIncrease) HP\n+\(atkIncrease) ATK"
+        layoutData.statIncreaseTrigger = UUID()
         
         do {
             if hpIncrease > 0 {
@@ -600,7 +613,7 @@ final class GameLayoutViewModel: ObservableObject {
         layoutData.isEnemyDefeated = false
         enemyAppearance = EnemyAppearance.random()
 
-        layoutData.playerHP = layoutData.playerMaxHP
+        // Removed automatic playerHP reset to maxHP to maintain current damage taken
 
         overlay = nil
         confirmAction = nil

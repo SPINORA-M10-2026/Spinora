@@ -133,11 +133,13 @@ private struct WaveClearedOverlay: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 150)
-                    .opacity(selectedChoice == nil ? 0.5 : 1.0)
+//                    .opacity(selectedChoice == nil ? 0.5 : 1.0)
+                    .saturation(selectedChoice == nil ? 0 : 1)
             }
-            .buttonStyle(PlainButtonStyle())
+//            .buttonStyle(PlainButtonStyle())
             .disabled(selectedChoice == nil)
             .offset(y: 150)
+//            .zIndex(900)
         }
         .padding(.horizontal, 20)
     }

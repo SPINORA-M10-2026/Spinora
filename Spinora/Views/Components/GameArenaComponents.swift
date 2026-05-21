@@ -24,8 +24,6 @@ struct ArenaLayout: View {
     var enemyState: EnemyAnimationState = .idle
     var enemyAppearance: EnemyAppearance? = nil
 
-    @State private var enemyFloat: CGFloat = 0
-
     // --- Efek visual saat PLAYER menyerang ENEMY ---
     @State private var showAttackEffect = false      // sprite animasi di sisi enemy
     @State private var enemyHitFlash = false         // flash merah di atas enemy sprite
@@ -38,6 +36,11 @@ struct ArenaLayout: View {
 
     private let knightAttackDuration: TimeInterval = 0.6
     private let effectDuration: TimeInterval = 0.6
+
+    // --- Efek visual floating stat text ---
+    @State private var showFloatingText = false
+    @State private var floatingTextY: CGFloat = 750
+    @State private var floatingTextOpacity: Double = 0.0
 
     var body: some View {
         ZStack {
@@ -54,38 +57,36 @@ struct ArenaLayout: View {
             .opacity(data.isEnemyDefeated ? 0.0 : 1.0)
             .animation(.easeOut(duration: 0.3), value: data.isEnemyDefeated)
 
-            // enemy avatar
-            Group {
-                if let appearance = enemyAppearance {
-                    EnemySpriteView(appearance: appearance)
+            // enemy avatar — float dihitung dari waktu nyata via TimelineView
+            // agar tidak bisa diinterupsi oleh withAnimation lain (shake/flash)
+            TimelineView(.animation) { timeline in
+                let t = timeline.date.timeIntervalSinceReferenceDate
+                let floatY = CGFloat(-6 * (1 - cos(t * .pi / 1.4)))
+                Group {
+                    if let appearance = enemyAppearance {
+                        EnemySpriteView(appearance: appearance)
+                            .frame(width: 270, height: 270)
+                    } else {
+                        AssetSlot(
+                            "enemy_idle",
+                            fill: Color.purple.opacity(0.18),
+                            cornerRadius: 16
+                        )
                         .frame(width: 270, height: 270)
-                } else {
-                    AssetSlot(
-                        "enemy_idle",
-                        fill: Color.purple.opacity(0.18),
-                        cornerRadius: 16
-                    )
-                    .frame(width: 270, height: 270)
+                    }
                 }
+                .overlay(
+                    Rectangle()
+                        .fill(Color.red.opacity(enemyHitFlash ? 0.45 : 0))
+                        .blendMode(.screen)
+                        .allowsHitTesting(false)
+                )
+                .offset(x: enemyShakeOffset, y: floatY)
             }
-            // Flash merah di enemy saat kena serangan player
-            .overlay(
-                Rectangle()
-                    .fill(Color.red.opacity(enemyHitFlash ? 0.45 : 0))
-                    .blendMode(.screen)
-                    .allowsHitTesting(false)
-            )
-            // Shake horizontal enemy saat kena serangan player
-            .offset(x: enemyShakeOffset)
-            .position(x: 660, y: 490 + enemyFloat)
+            .position(x: 660, y: 490)
             .scaleEffect(data.isEnemyDefeated ? 0.2 : 1.0)
             .opacity(data.isEnemyDefeated ? 0.0 : 1.0)
             .animation(.easeOut(duration: 0.6), value: data.isEnemyDefeated)
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
-                    enemyFloat = -12
-                }
-            }
 
             // Sprite animasi serangan player ke enemy — muncul setelah animasi knight selesai (T+600ms)
             if showAttackEffect {
@@ -113,6 +114,15 @@ struct ArenaLayout: View {
                 // Shake horizontal player saat kena serangan monster
                 .offset(x: playerShakeOffset)
                 .position(x: 150, y: 820)
+                
+            if showFloatingText, let text = data.statIncreaseText {
+                GamePixelText(text, size: 24)
+                    .foregroundStyle(.green)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: .black, radius: 2, x: 1, y: 1)
+                    .position(x: 150, y: floatingTextY)
+                    .opacity(floatingTextOpacity)
+            }
 
             // Sprite animasi serangan monster ke player — muncul saat enemyState berubah ke .attack.
             // scaleEffect(x: -1) membalik sprite secara horizontal (mirroring) agar efek tampak
@@ -195,6 +205,30 @@ struct ArenaLayout: View {
                 showEnemyAttackEffect = false
             }
         }
+        .onChange(of: data.statIncreaseTrigger) { _, newValue in
+            guard newValue != nil else { return }
+            
+            // Reset to starting position
+            floatingTextY = 720
+            floatingTextOpacity = 1.0
+            showFloatingText = true
+            
+            // Animate float up selama 1 detik
+            withAnimation(.easeOut(duration: 1.0)) {
+                floatingTextY = 680
+            }
+            
+            // Setelah naik 1 detik, berhenti 4 detik, lalu fade out
+            withAnimation(.easeIn(duration: 0.5).delay(4.0)) {
+                floatingTextOpacity = 0.0
+            }
+            
+            // Clean up setelah seluruh animasi selesai (1s + 4s + 0.5s = 5.5s)
+            Task {
+                try? await Task.sleep(for: .milliseconds(5500))
+                showFloatingText = false
+            }
+        }
     }
 }
 
@@ -222,7 +256,7 @@ struct HealthBarSlot: View {
                     .padding(.leading, 7)
                     .padding(.vertical, 5)
 
-                GamePixelText(value, size: 17)
+                GamePixelText(value, size: 22)
                     .padding(.leading, 18)
             }
             .overlay(

@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "alert_game_over.png",
+      "filename" : "button_back_default.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
