@@ -16,14 +16,10 @@ struct StartPageView: View {
     // MARK: - Easy Adjustment Values
 
     // Background
-    // Bigger than 1.0 = zoom in
-    // Smaller than 1.0 = zoom out
     private let backgroundWidthScale: CGFloat = 1.0
     private let backgroundHeightScale: CGFloat = 1.0
 
     // Move background
-    // Positive X = right, negative X = left
-    // Positive Y = down, negative Y = up
     private let backgroundXOffsetRatio: CGFloat = 0.0
     private let backgroundYOffsetRatio: CGFloat = 0.0
 
@@ -80,6 +76,13 @@ struct StartPageView: View {
                 // MARK: - Start Button
 
                 Button {
+                    SoundFeedback.shared.playButtonPressSound()
+                    ExploreHaptic.shared.play(.buttonClickHeavy)
+
+                    StartBackgroundMusic.shared.stopBackgroundMusic()
+                    
+                    SoundFeedback.shared.playTransition()
+
                     onStart()
                 } label: {
                     Image(startButtonAsset)
@@ -107,6 +110,12 @@ struct StartPageView: View {
             .ignoresSafeArea()
             .task {
                 await runKnightIdleAnimation()
+            }
+            .onAppear {
+                StartBackgroundMusic.shared.startBackgroundMusic()
+            }
+            .onDisappear {
+                StartBackgroundMusic.shared.stopBackgroundMusic()
             }
         }
         .ignoresSafeArea()

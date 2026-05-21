@@ -83,6 +83,7 @@ struct GameLayoutDemoView: View {
                     atkRewardPercent: viewModel.atkRewardPercent,
                     onRewardSelected: { reward in
                         viewModel.selectReward(reward)
+                        SoundFeedback.shared.chooseUpgrade()
                     },
                     onOK: {
                         viewModel.closeOverlay()
@@ -129,6 +130,12 @@ struct GameLayoutDemoView: View {
                 tutorialStep = 1
                 showTutorialOverlay = true
             }
+        }
+        .onAppear {
+            MainBackgroundMusic.shared.playBackgroundMusic()
+        }
+        .onDisappear {
+            MainBackgroundMusic.shared.stopBackgroundMusic()
         }
     }
 }

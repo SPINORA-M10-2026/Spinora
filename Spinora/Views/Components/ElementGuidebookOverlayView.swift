@@ -81,6 +81,10 @@ struct ElementGuidebookOverlayView: View {
 
             HStack {
                 Button {
+
+                    SoundFeedback.shared.playButtonPressSound()
+                    ExploreHaptic.shared.play(.buttonClickHeavy)
+
                     goToPreviousPage()
                 } label: {
                     Image(backButtonAsset)
@@ -104,6 +108,10 @@ struct ElementGuidebookOverlayView: View {
                 Spacer()
 
                 Button {
+
+                    SoundFeedback.shared.playButtonPressSound()
+                    ExploreHaptic.shared.play(.buttonClickHeavy)
+                    
                     goToNextPage()
                 } label: {
                     Image(nextButtonAsset)
@@ -142,6 +150,10 @@ struct ElementGuidebookOverlayView: View {
             // MARK: - OK Button Asset
 
             Button {
+
+                SoundFeedback.shared.playButtonPressSound()
+                ExploreHaptic.shared.play(.buttonClickHeavy)
+
                 isPresented = false
             } label: {
                 Image(okButtonAsset)
