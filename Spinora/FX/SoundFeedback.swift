@@ -24,7 +24,10 @@ final class SoundFeedback {
     private var buttonPressPlayer: AVAudioPlayer?
     private var rollPressPlayer: AVAudioPlayer?
 
-    private init() {}
+    private init() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
+        try? AVAudioSession.sharedInstance().setActive(true)
+    }
 
     func playButtonPressSound() {
         guard let url = Bundle.main.url(
