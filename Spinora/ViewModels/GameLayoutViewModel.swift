@@ -548,10 +548,13 @@ final class GameLayoutViewModel: ObservableObject {
         
         accumulatedBonusHP += hpIncrease
         layoutData.playerMaxHP = newHP
-        layoutData.playerHP = newHP
+        layoutData.playerHP += hpIncrease
         
         accumulatedBonusAttack += atkIncrease
         layoutData.playerAttackText = "\(newATK)"
+        
+        layoutData.statIncreaseText = "+\(hpIncrease) HP\n+\(atkIncrease) ATK"
+        layoutData.statIncreaseTrigger = UUID()
         
         do {
             if hpIncrease > 0 {
@@ -605,7 +608,7 @@ final class GameLayoutViewModel: ObservableObject {
         layoutData.isEnemyDefeated = false
         enemyAppearance = EnemyAppearance.random()
 
-        layoutData.playerHP = layoutData.playerMaxHP
+        // Removed automatic playerHP reset to maxHP to maintain current damage taken
 
         overlay = nil
         confirmAction = nil
