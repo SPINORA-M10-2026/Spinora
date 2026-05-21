@@ -13,7 +13,13 @@ struct BottomButtonLayout: View {
 
     var body: some View {
         ZStack {
-            Button(action: onAttackTap) {
+            Button(action: {
+                
+                // SoundFeedback.shared.playButtonPressSound()
+                ExploreHaptic.shared.play(.buttonClickHeavy)
+
+                onAttackTap()
+            }) {
                 
             }
             .buttonStyle(

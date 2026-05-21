@@ -26,6 +26,9 @@ struct BattleLayoutData {
     var canAttack: Bool
     var isEnemyDefeated: Bool = false
     var showTapToPlay: Bool = true
+    
+    var statIncreaseText: String? = nil
+    var statIncreaseTrigger: UUID? = nil
 
     var lastPlayerDamage: Int = 0
     var lastMonsterDamage: Int = 0

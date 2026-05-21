@@ -121,6 +121,10 @@ private struct WaveClearedOverlay: View {
             }
             
             Button(action: {
+                
+                SoundFeedback.shared.playButtonPressSound()
+                ExploreHaptic.shared.play(.buttonClickHeavy)
+                
                 if let choice = selectedChoice {
                     onRewardSelected(choice)
                 }

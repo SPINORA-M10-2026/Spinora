@@ -86,6 +86,8 @@ struct GameTutorialOverlayView: View {
                 progressText: "1/2",
                 button: AnyView(
                     Button {
+                        SoundFeedback.shared.playButtonPressSound()
+                        ExploreHaptic.shared.play(.buttonClickHeavy)
                         step = 2
                     } label: {
                         GamePixelText("NEXT", size: 16)
@@ -141,6 +143,8 @@ struct GameTutorialOverlayView: View {
                 progressText: "2/2",
                 button: AnyView(
                     Button {
+                        SoundFeedback.shared.playButtonPressSound()
+                        ExploreHaptic.shared.play(.buttonClickHeavy)
                         finishTutorial()
                     } label: {
                         GamePixelText("FINISH", size: 16)
