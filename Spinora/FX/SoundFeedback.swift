@@ -7,6 +7,17 @@
 
 import AVFoundation
 
+/*
+
+HOW TO USED IT?
+
+Button("Roll") {
+                SoundFeedback.shared.playButtonPressSound()
+                exploreHaptic.shared.play(.buttonClickHeavy)
+            } 
+
+*/
+
 final class SoundFeedback {
     static let shared = SoundFeedback()
 
@@ -22,7 +33,7 @@ final class SoundFeedback {
         ) ?? Bundle.main.url(
             forResource: "button-press SFX05_1",
             withExtension: "wav",
-            subdirectory: "Audio/SFX"
+            subdirectory: "Sounds"
         ) else {
             assertionFailure("Could not find button-press SFX05_1.wav")
             return
@@ -41,16 +52,22 @@ final class SoundFeedback {
         }
     }
 
+
+    /*
+    "Please Credit this channel if you use ANY of our samples. Thank You."
+    
+    https://www.youtube.com/@brandnameaudio
+    */
     func rollPressSound() {
         guard let url = Bundle.main.url(
-            forResource: "Roll SFX05",
+            forResource: "Roll Sound",
             withExtension: "wav"
         ) ?? Bundle.main.url(
-            forResource: "Roll SFX05",
+            forResource: "Roll Sound",
             withExtension: "wav",
-            subdirectory: "Audio/SFX"
+            subdirectory: "Sounds"
         ) else {
-            assertionFailure("Could not find Roll SFX05.wav")
+            assertionFailure("Could not find Roll Sound.wav")
             return
         }
 
@@ -74,7 +91,7 @@ final class SoundFeedback {
         ) ?? Bundle.main.url(
             forResource: "sword slash SFX",
             withExtension: "wav",
-            subdirectory: "Audio/SFX"
+            subdirectory: "Sounds"
         ) else {
             assertionFailure("Could not find sword slash SFX.wav")
             return
@@ -100,7 +117,7 @@ final class SoundFeedback {
         ) ?? Bundle.main.url(
             forResource: "Hit SFX05",
             withExtension: "wav",
-            subdirectory: "Audio/SFX"
+            subdirectory: "Sounds"
         ) else {
             assertionFailure("Could not find Hit SFX05.wav")
             return

@@ -55,6 +55,10 @@ final class GameViewModel: ObservableObject {
             showingUpgradeSheet: overlay != nil
         ) else { return }
 
+        // Play roll sound and haptic
+        SoundFeedback.shared.rollPressSound()
+        ExploreHaptic.shared.play(.slotRoll)
+
         isRolling = true
 
         Task {
