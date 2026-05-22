@@ -79,6 +79,18 @@ final class GameLayoutViewModel: ObservableObject {
         hasConfiguredPersistence = true
     }
     
+    func repairDeadSavedRunOnLaunchIfNeeded() {
+        guard let savedRunRepository else {
+            return
+        }
+
+        do {
+            try savedRunRepository.repairDeadRunOnLaunchIfNeeded()
+        } catch {
+            print("Failed to repair dead saved run on launch:", error)
+        }
+    }
+    
     func loadSavedRunIfAvailable() {
         guard !hasLoadedSavedRun else {
             return

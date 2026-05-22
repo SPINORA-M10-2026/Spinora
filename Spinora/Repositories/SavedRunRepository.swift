@@ -187,4 +187,32 @@ final class SavedRunRepository {
 
         try context.save()
     }
+    
+    // MARK: - Launch Repair
+
+    func repairDeadRunOnLaunchIfNeeded() throws {
+        guard let run = try load() else {
+            return
+        }
+
+        let hpIsDead = run.playerHP <= 0
+        let deathFlagIsActive = run.isPlayerDead == true
+        let retryFlagIsActive = run.canRetryWave == true
+
+        guard hpIsDead || deathFlagIsActive || retryFlagIsActive else {
+            return
+        }
+
+        run.playerHP = max(1, run.playerMaxHP)
+        run.enemyHP = run.enemyMaxHP
+
+        run.currentReelSymbols = ["water", "fire", "earth"]
+        run.rolledThisTurn = [false, false, false]
+
+        run.isPlayerDead = false
+        run.canRetryWave = false
+        run.savedAt = Date()
+
+        try context.save()
+    }
 }
