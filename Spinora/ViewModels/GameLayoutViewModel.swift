@@ -364,7 +364,7 @@ final class GameLayoutViewModel: ObservableObject {
             print("👹 MONSTER: \(monsterDamage) DMG | Element: \(enemyElement.rawValue)")
             layoutData.playerHP = max(0, layoutData.playerHP - monsterDamage)
             SoundFeedback.shared.hitPressSound()
-            exploreHaptic.shared.play(.buttonClickHeavy)
+            ExploreHaptic.shared.play(.buttonClickHeavy)
 
             // Reset state monster dan buka button kembali
             enemyAnimationState = .idle
