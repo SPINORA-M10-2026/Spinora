@@ -85,20 +85,6 @@ struct GameBattleView: View {
             
             EnvironmentBackgroundView()
             
-            
-            if let animation = activeAnimation {
-                switch animation {
-                case .double:
-                    FrameAnimation.double()
-                        .position(x: designWidth/2, y: designHeight/2 )
-                        .transition(.opacity)
-                case .jackpot:
-                    FrameAnimation.jackpot()
-                        .position(x: designWidth/2, y: designHeight/2)
-                        .transition(.opacity)
-                }
-            }
-            
             WoodBackgroundView()
 
             // enemyState diteruskan dari GameBattleView ke ArenaLayout
@@ -125,6 +111,21 @@ struct GameBattleView: View {
                 waveText: data.waveText,
                 onPauseTap: onPauseTap
             )
+            
+            if let animation = activeAnimation {
+                switch animation {
+                case .double:
+                    FrameAnimation.double()
+                        .position(x: designWidth/2, y: designHeight/2 )
+                        .transition(.opacity)
+                        .zIndex(50)
+                case .jackpot:
+                    FrameAnimation.jackpot()
+                        .position(x: designWidth/2, y: designHeight/2)
+                        .transition(.opacity)
+                        .zIndex(50)
+                }
+            }
         }
         .frame(width: designWidth, height: designHeight)
         .clipped()
