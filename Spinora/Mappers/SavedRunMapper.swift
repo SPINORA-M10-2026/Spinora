@@ -74,30 +74,52 @@ struct SavedRunMapper {
         isPlayerDead: Bool,
         canRetryWave: Bool
     ) {
+        let playableModel = toPlayableLaunchModel(model)
+
         let player = Character(
-            hp: model.playerHP,
-            maxHp: model.playerMaxHP,
-            baseAttack: model.playerBaseAttack,
+            hp: playableModel.playerHP,
+            maxHp: playableModel.playerMaxHP,
+            baseAttack: playableModel.playerBaseAttack,
             element: nil
         )
 
         let enemy = Character(
-            hp: model.enemyHP,
-            maxHp: model.enemyMaxHP,
-            baseAttack: 0,
+            hp: playableModel.enemyHP,
+            maxHp: playableModel.enemyMaxHP,
+            baseAttack: playableModel.enemyBaseAttack,
             element: nil
         )
 
         return (
-            wave: model.currentWave,
+            wave: playableModel.currentWave,
             player: player,
             enemy: enemy,
-            accumulatedBonusHP: model.accumulatedBonusHP,
-            accumulatedBonusAttack: model.accumulatedBonusAttack,
-            currentReelSymbols: model.currentReelSymbols,
-            rolledThisTurn: model.rolledThisTurn,
-            isPlayerDead: model.isPlayerDead,
-            canRetryWave: model.canRetryWave
+            accumulatedBonusHP: playableModel.accumulatedBonusHP,
+            accumulatedBonusAttack: playableModel.accumulatedBonusAttack,
+            currentReelSymbols: playableModel.currentReelSymbols,
+            rolledThisTurn: playableModel.rolledThisTurn,
+            isPlayerDead: playableModel.isPlayerDead,
+            canRetryWave: playableModel.canRetryWave
         )
+    }
+    
+    // MARK: - Safety Validation
+
+    static func isDeadOrLockedRun(_ model: SavedRunModel) -> Bool {
+        model.playerHP <= 0 || model.isPlayerDead || model.canRetryWave
+    }
+
+    static func toPlayableLaunchModel(_ model: SavedRunModel) -> SavedRunModel {
+        if isDeadOrLockedRun(model) {
+            model.playerHP = max(1, model.playerMaxHP)
+            model.enemyHP = model.enemyMaxHP
+            model.currentReelSymbols = ["water", "fire", "earth"]
+            model.rolledThisTurn = [false, false, false]
+            model.isPlayerDead = false
+            model.canRetryWave = false
+            model.savedAt = Date()
+        }
+
+        return model
     }
 }

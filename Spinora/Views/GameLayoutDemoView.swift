@@ -123,6 +123,7 @@ struct GameLayoutDemoView: View {
         }
         .task {
             viewModel.configurePersistenceIfNeeded(modelContext: modelContext)
+            viewModel.repairDeadSavedRunOnLaunchIfNeeded()
             viewModel.loadSavedRunIfAvailable()
 
             // FINAL: only show tutorial once after first download/install.
