@@ -16,8 +16,8 @@ struct ElementGuidebookOverlayView: View {
     @State private var isOKPressed = false
 
     private let pages: [ElementComboGuidePage] = [
-        ElementComboGuidePage(assetName: "alert_element_fire_combo"),
         ElementComboGuidePage(assetName: "alert_element_water_combo"),
+        ElementComboGuidePage(assetName: "alert_element_fire_combo"),
         ElementComboGuidePage(assetName: "alert_element_rock_combo")
     ]
 
