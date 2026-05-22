@@ -40,6 +40,12 @@ final class ReelGameScene: SKScene {
 
     private var touchNodes: [SKShapeNode] = []
 
+    // MARK: - Slot Machine Refresh State
+
+    private var hasInitializedReelState = false
+    private var isRandomizingBeforeNewTurn = false
+    private var lastFinalizedColumns: [[String]] = []
+
     override func didMove(to view: SKView) {
         backgroundColor = .clear
         anchorPoint = .zero
@@ -73,7 +79,10 @@ final class ReelGameScene: SKScene {
         reelRolledThisTurn: [Bool],
         animatedChangedIndex: Int?
     ) {
-        self.reelColumns = normalizeColumns(reelColumns)
+        let previousRolledThisTurn = self.reelRolledThisTurn
+        let normalizedColumns = normalizeColumns(reelColumns)
+
+        self.reelColumns = normalizedColumns
         self.reelRolledThisTurn = reelRolledThisTurn
 
         guard topSymbols.count == 3,
@@ -81,6 +90,18 @@ final class ReelGameScene: SKScene {
               bottomSymbols.count == 3,
               usedSegmentOverlayNodes.count == 3,
               touchNodes.count == 3 else {
+            return
+        }
+
+        let shouldRandomizeBeforeNewTurn = shouldAnimateBeforeNewPlayerTurn(
+            previousRolledThisTurn: previousRolledThisTurn,
+            newRolledThisTurn: reelRolledThisTurn,
+            animatedChangedIndex: animatedChangedIndex
+        )
+
+        if shouldRandomizeBeforeNewTurn {
+            hideAllUsedSegmentOverlays()
+            animateRandomizeAllReelsBeforeNewTurn(finalColumns: normalizedColumns)
             return
         }
 
@@ -99,7 +120,7 @@ final class ReelGameScene: SKScene {
                     finalCenter: symbols[1],
                     finalBottom: symbols[2]
                 )
-            } else {
+            } else if !isRandomizingBeforeNewTurn {
                 setSymbolTexture(topSymbols[index], symbol: symbols[0])
                 setSymbolTexture(centerSymbols[index], symbol: symbols[1])
                 setSymbolTexture(bottomSymbols[index], symbol: symbols[2])
@@ -112,6 +133,8 @@ final class ReelGameScene: SKScene {
             let isUsed = isReelUsed(index)
             usedSegmentOverlayNodes[index].isHidden = !isUsed
         }
+
+        hasInitializedReelState = true
     }
 
     func hideTapToPlay() {
@@ -190,7 +213,6 @@ final class ReelGameScene: SKScene {
         let usedOverlayXOffset: CGFloat = 0
         let usedOverlayYOffset: CGFloat = 0
         let usedOverlayOpacity: CGFloat = 0.42
-        let _: CGFloat = 0.0
         let usedOverlayBorderWidth: CGFloat = 0
 
         // MARK: - Icon Placement
@@ -276,6 +298,148 @@ final class ReelGameScene: SKScene {
             touchNode.zPosition = 60
             addChild(touchNode)
             touchNodes.append(touchNode)
+        }
+    }
+
+    // MARK: - Slot Machine Randomize Before New Player Turn
+
+    private func shouldAnimateBeforeNewPlayerTurn(
+        previousRolledThisTurn: [Bool],
+        newRolledThisTurn: [Bool],
+        animatedChangedIndex: Int?
+    ) -> Bool {
+        guard hasInitializedReelState else {
+            hasInitializedReelState = true
+            lastFinalizedColumns = reelColumns
+            return false
+        }
+
+        guard animatedChangedIndex == nil else {
+            return false
+        }
+
+        let newTurnAllSegmentsAvailable = newRolledThisTurn.allSatisfy { $0 == false }
+        let reelResultChanged = lastFinalizedColumns != reelColumns
+
+        if newTurnAllSegmentsAvailable && reelResultChanged {
+            lastFinalizedColumns = reelColumns
+            return true
+        }
+
+        lastFinalizedColumns = reelColumns
+        return false
+    }
+
+    private func animateRandomizeAllReelsBeforeNewTurn(finalColumns: [[String]]) {
+        guard topSymbols.count == 3,
+              centerSymbols.count == 3,
+              bottomSymbols.count == 3 else {
+            return
+        }
+
+        isRandomizingBeforeNewTurn = true
+
+        for index in 0..<3 {
+            guard index < finalColumns.count,
+                  finalColumns[index].count >= 3 else {
+                continue
+            }
+
+            animateRandomizeSingleReelBeforeNewTurn(
+                index: index,
+                finalTop: finalColumns[index][0],
+                finalCenter: finalColumns[index][1],
+                finalBottom: finalColumns[index][2],
+                delay: Double(index) * 0.12
+            )
+        }
+
+        run(.sequence([
+            .wait(forDuration: 1.0),
+            .run { [weak self] in
+                self?.isRandomizingBeforeNewTurn = false
+            }
+        ]))
+    }
+
+    private func animateRandomizeSingleReelBeforeNewTurn(
+        index: Int,
+        finalTop: String,
+        finalCenter: String,
+        finalBottom: String,
+        delay: TimeInterval
+    ) {
+        guard index >= 0,
+              index < topSymbols.count,
+              index < centerSymbols.count,
+              index < bottomSymbols.count else {
+            return
+        }
+
+        let possibleSymbols = ["fire", "water", "earth"]
+
+        let top = topSymbols[index]
+        let center = centerSymbols[index]
+        let bottom = bottomSymbols[index]
+
+        let originalTopPosition = top.position
+        let originalCenterPosition = center.position
+        let originalBottomPosition = bottom.position
+
+        let tick = SKAction.run {
+            let randomTop = possibleSymbols.randomElement() ?? "water"
+            let randomCenter = possibleSymbols.randomElement() ?? "fire"
+            let randomBottom = possibleSymbols.randomElement() ?? "earth"
+
+            self.setSymbolTexture(top, symbol: randomTop)
+            self.setSymbolTexture(center, symbol: randomCenter)
+            self.setSymbolTexture(bottom, symbol: randomBottom)
+
+            top.position = CGPoint(x: originalTopPosition.x, y: originalTopPosition.y + 12)
+            center.position = CGPoint(x: originalCenterPosition.x, y: originalCenterPosition.y + 12)
+            bottom.position = CGPoint(x: originalBottomPosition.x, y: originalBottomPosition.y + 12)
+
+            top.run(.move(to: originalTopPosition, duration: 0.045))
+            center.run(.move(to: originalCenterPosition, duration: 0.045))
+            bottom.run(.move(to: originalBottomPosition, duration: 0.045))
+        }
+
+        let cycle = SKAction.sequence([
+            tick,
+            .wait(forDuration: 0.055)
+        ])
+
+        let spin = SKAction.repeat(cycle, count: 12)
+
+        let stop = SKAction.run {
+            top.removeAllActions()
+            center.removeAllActions()
+            bottom.removeAllActions()
+
+            top.position = originalTopPosition
+            center.position = originalCenterPosition
+            bottom.position = originalBottomPosition
+
+            self.setSymbolTexture(top, symbol: finalTop)
+            self.setSymbolTexture(center, symbol: finalCenter)
+            self.setSymbolTexture(bottom, symbol: finalBottom)
+
+            center.run(.sequence([
+                .scale(to: 1.14, duration: 0.08),
+                .scale(to: 1.0, duration: 0.10)
+            ]))
+        }
+
+        run(.sequence([
+            .wait(forDuration: delay),
+            spin,
+            stop
+        ]))
+    }
+
+    private func hideAllUsedSegmentOverlays() {
+        for overlayNode in usedSegmentOverlayNodes {
+            overlayNode.isHidden = true
         }
     }
 
@@ -411,6 +575,10 @@ final class ReelGameScene: SKScene {
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard !isRandomizingBeforeNewTurn else {
+            return
+        }
+
         guard let touch = touches.first else {
             return
         }
