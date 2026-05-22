@@ -58,6 +58,7 @@ struct EnvironmentBackgroundView: View {
             .resizable()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .position(x: 416, y: 875)
+//            .zIndex(5)
     }
 }
 
@@ -69,6 +70,7 @@ struct WoodBackgroundView: View {
             .scaledToFill()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
+//            .zIndex(10)
     }
 }
 

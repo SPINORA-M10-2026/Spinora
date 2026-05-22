@@ -85,10 +85,26 @@ struct GameBattleView: View {
             
             EnvironmentBackgroundView()
             
-            WoodBackgroundView()
-
             // enemyState diteruskan dari GameBattleView ke ArenaLayout
             ArenaLayout(data: data, playerState: playerState, enemyState: enemyState, enemyAppearance: enemyAppearance)
+            
+            if let animation = activeAnimation {
+                switch animation {
+                case .double:
+                    FrameAnimation.double()
+                        .position(x: designWidth/2, y: designHeight/2 )
+                        .transition(.opacity)
+//                        .zIndex(5)
+                case .jackpot:
+                    FrameAnimation.jackpot()
+                        .position(x: designWidth/2, y: designHeight/2)
+                        .transition(.opacity)
+//                        .zIndex(5)
+                }
+            }
+            
+            WoodBackgroundView()
+
 
 //            BottomFrameLayout()
 
@@ -101,31 +117,16 @@ struct GameBattleView: View {
                 onGuidebookTap: onGuidebookTap,
                 onReelTap: onReelTap
             )
-
-            BottomButtonLayout(
-                canAttack: data.canAttack,
-                onAttackTap: onAttackTap
-            )
-
+            
             HUDLayout(
                 waveText: data.waveText,
                 onPauseTap: onPauseTap
             )
             
-            if let animation = activeAnimation {
-                switch animation {
-                case .double:
-                    FrameAnimation.double()
-                        .position(x: designWidth/2, y: designHeight/2 )
-                        .transition(.opacity)
-                        .zIndex(50)
-                case .jackpot:
-                    FrameAnimation.jackpot()
-                        .position(x: designWidth/2, y: designHeight/2)
-                        .transition(.opacity)
-                        .zIndex(50)
-                }
-            }
+            BottomButtonLayout(
+                canAttack: data.canAttack,
+                onAttackTap: onAttackTap
+            )
         }
         .frame(width: designWidth, height: designHeight)
         .clipped()
