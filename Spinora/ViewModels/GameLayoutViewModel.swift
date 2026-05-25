@@ -79,6 +79,18 @@ final class GameLayoutViewModel: ObservableObject {
         hasConfiguredPersistence = true
     }
     
+    func repairDeadSavedRunOnLaunchIfNeeded() {
+        guard let savedRunRepository else {
+            return
+        }
+
+        do {
+            try savedRunRepository.repairDeadRunOnLaunchIfNeeded()
+        } catch {
+            print("Failed to repair dead saved run on launch:", error)
+        }
+    }
+    
     func loadSavedRunIfAvailable() {
         guard !hasLoadedSavedRun else {
             return
@@ -318,10 +330,26 @@ final class GameLayoutViewModel: ObservableObject {
 
         Task {
             // T+600ms: animasi player selesai, baru apply damage ke enemy HP bar
-            // (tidak instant, agar HP bar turun setelah animasi pukulan terlihat)
             try? await Task.sleep(for: .milliseconds(600))
             playerAnimationState = .idle
             layoutData.enemyHP = max(0, layoutData.enemyHP - playerDamage)
+            
+            // --- Healing dari sisa reroll ---
+            let unusedRolls = remainingRollCount()
+            var healAmount = 0
+            if unusedRolls == 1 {
+                healAmount = Int(Double(layoutData.playerMaxHP) * 0.02)
+            } else if unusedRolls == 2 {
+                healAmount = Int(Double(layoutData.playerMaxHP) * 0.03)
+            } else if unusedRolls >= 3 {
+                healAmount = Int(Double(layoutData.playerMaxHP) * 0.05)
+            }
+            
+            if healAmount > 0 {
+                layoutData.playerHP = min(layoutData.playerMaxHP, layoutData.playerHP + healAmount)
+                layoutData.statIncreaseText = "+\(healAmount) Heal"
+                layoutData.statIncreaseTrigger = UUID()
+            }
 
             // Jika enemy kalah, selesaikan giliran tanpa monster balas serang
             if layoutData.enemyHP <= 0 {
@@ -347,6 +375,8 @@ final class GameLayoutViewModel: ObservableObject {
             let monsterDamage = enemyAttackValue
             print("👹 MONSTER: \(monsterDamage) DMG | Element: \(enemyElement.rawValue)")
             layoutData.playerHP = max(0, layoutData.playerHP - monsterDamage)
+            SoundFeedback.shared.hitPressSound()
+            ExploreHaptic.shared.play(.buttonClickHeavy)
 
             // Reset state monster dan buka button kembali
             enemyAnimationState = .idle
@@ -365,27 +395,31 @@ final class GameLayoutViewModel: ObservableObject {
     // MARK: - Player Death
     
     func markPlayerDead() {
+        layoutData.playerHP = 0
+        layoutData.canAttack = false
+        // Trigger animasi mati player — PlayerSpriteView akan memainkan deadFrames
+        playerAnimationState = .dead
+        MainBackgroundMusic.shared.stopBackgroundMusic()
+        SoundFeedback.shared.playerDied()
+
+        Task {
+            // Tunda overlay konfirmasi agar animasi mati sempat selesai (durasi 1.2s)
+            try? await Task.sleep(for: .seconds(1.4))
+
+            showRestartWaveConfirmation()
+            
+            // Setelah animasi dead selesai + 1 detik, kembali ke idle
+            // (terlihat di belakang overlay sebelum player memilih retry)
+            try? await Task.sleep(for: .seconds(1.0))
+            playerAnimationState = .idle
+        }
+
         guard let savedRunRepository else {
             return
         }
 
         do {
             try savedRunRepository.markPlayerDead()
-
-            layoutData.playerHP = 0
-            layoutData.canAttack = false
-            // Trigger animasi mati player — PlayerSpriteView akan memainkan deadFrames
-            playerAnimationState = .dead
-
-            Task {
-                // Tunda overlay konfirmasi agar animasi mati sempat selesai (durasi 1.2s)
-                try? await Task.sleep(for: .seconds(1.4))
-                showRestartWaveConfirmation()
-                // Setelah animasi dead selesai + 1 detik, kembali ke idle
-                // (terlihat di belakang overlay sebelum player memilih retry)
-                try? await Task.sleep(for: .seconds(1.0))
-                playerAnimationState = .idle
-            }
         } catch {
             print("Failed to mark player dead:", error)
         }
@@ -484,6 +518,8 @@ final class GameLayoutViewModel: ObservableObject {
     // MARK: - Overlay
     
     func showWaveCleared() {
+        MainBackgroundMusic.shared.lowerVolume()
+        SoundFeedback.shared.playerWin()
         hpRewardPercent = Int.random(in: 1...3)
         atkRewardPercent = Int.random(in: 1...3)
         overlay = .waveCleared
@@ -492,6 +528,7 @@ final class GameLayoutViewModel: ObservableObject {
     }
     
     func showPause() {
+        MainBackgroundMusic.shared.pauseBackgroundMusic()
         overlay = .pause
         syncLayout()
     }
@@ -509,12 +546,21 @@ final class GameLayoutViewModel: ObservableObject {
     }
     
     func closeOverlay() {
+        MainBackgroundMusic.shared.resumeBackgroundMusic()
+        overlay = nil
+        confirmAction = nil
+        syncLayout()
+    }
+
+    func resumeGame() {
+        MainBackgroundMusic.shared.resumeBackgroundMusic()
         overlay = nil
         confirmAction = nil
         syncLayout()
     }
     
     func backToPause() {
+        MainBackgroundMusic.shared.pauseBackgroundMusic()
         overlay = .pause
         confirmAction = nil
         syncLayout()
@@ -525,8 +571,14 @@ final class GameLayoutViewModel: ObservableObject {
         case .restartWave:
             retryCurrentWave()
             
+            MainBackgroundMusic.shared.stopBackgroundMusic()
+            MainBackgroundMusic.shared.playBackgroundMusic()
+
         case .resetGame:
             rerunFromFirstWave()
+
+            MainBackgroundMusic.shared.stopBackgroundMusic()
+            MainBackgroundMusic.shared.playBackgroundMusic()
             
         case .none:
             break
@@ -538,6 +590,8 @@ final class GameLayoutViewModel: ObservableObject {
     // MARK: - Reward
     
     func selectReward(_ reward: RewardChoice) {
+        MainBackgroundMusic.shared.restoreVolume()
+
         let waveStr = layoutData.waveText
         let targetWave = (Int(waveStr) ?? 1) + 1
         

@@ -104,8 +104,13 @@ final class GameViewModel: ObservableObject {
 
         if summary.isMonsterDead {
             handleWaveCleared()
+            SoundFeedback.shared.playerWin()
+
         } else if summary.isPlayerDead {
+            MainBackgroundMusic.shared.stopBackgroundMusic()
+            SoundFeedback.shared.playerDied()
             handleGameOver()
+
         } else {
             reelState = reelManager.makeNewTurnState()
         }

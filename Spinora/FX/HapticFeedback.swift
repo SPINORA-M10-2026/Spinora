@@ -114,13 +114,14 @@ final class ExploreHaptic {
     }
     
     func playSlotRollRandom(duration: TimeInterval = 2.0) {
+        let tingDuration: TimeInterval = 0.2
+        let rollDuration = max(0, duration - tingDuration)
         let startTime = Date()
         
         func roll() {
             let elapsedTime = Date().timeIntervalSince(startTime)
             
-            guard elapsedTime < duration else {
-                self.play(.slotStop)
+            guard elapsedTime < rollDuration else {
                 return
             }
             
@@ -143,5 +144,9 @@ final class ExploreHaptic {
         }
         
         roll()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            self.impact(.heavy)
+        }
     }
 }

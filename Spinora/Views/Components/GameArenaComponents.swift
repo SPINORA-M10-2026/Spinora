@@ -125,7 +125,7 @@ struct ArenaLayout: View {
                 .position(x: 150, y: 820)
                 
             if showFloatingText, let text = data.statIncreaseText {
-                GamePixelText(text, size: 24)
+                GamePixelText(text, size: 32)
                     .foregroundStyle(.green)
                     .multilineTextAlignment(.center)
                     .shadow(color: .black, radius: 2, x: 1, y: 1)
@@ -254,7 +254,7 @@ struct ArenaLayout: View {
             }
             
             // Setelah naik 1 detik, berhenti 4 detik, lalu fade out
-            withAnimation(.easeIn(duration: 0.5).delay(4.0)) {
+            withAnimation(.easeIn(duration: 0.5).delay(1.0)) {
                 floatingTextOpacity = 0.0
             }
             

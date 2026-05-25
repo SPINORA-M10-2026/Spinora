@@ -11,6 +11,7 @@ import SwiftData
 struct GameLayoutDemoView: View {
     @AppStorage("hasCompletedFirstGameTutorial") private var hasCompletedFirstGameTutorial = false
     @State private var showTutorialOverlay = false
+    @State private var tutorialStep: Int = 1
     @State private var showElementGuidebookOverlay = false
     
     @Environment(\.modelContext) private var modelContext
@@ -24,15 +25,52 @@ struct GameLayoutDemoView: View {
                 enemyState: viewModel.enemyAnimationState,
                 enemyAppearance: viewModel.enemyAppearance,
                 onPauseTap: {
+                    if showTutorialOverlay {
+                        return
+                    }
+
                     viewModel.showPause()
                 },
                 onAttackTap: {
+                    if showTutorialOverlay {
+                        guard tutorialStep == 2 else {
+                            return
+                        }
+
+                        viewModel.attack()
+
+                        SoundFeedback.shared.playButtonPressSound()
+                        ExploreHaptic.shared.play(.buttonClickHeavy)
+
+                        hasCompletedFirstGameTutorial = true
+                        showTutorialOverlay = false
+                        return
+                    }
+
                     viewModel.attack()
                 },
                 onGuidebookTap: {
+                    if showTutorialOverlay {
+                        return
+                    }
+
                     showElementGuidebookOverlay = true
                 },
                 onReelTap: { index in
+                    if showTutorialOverlay {
+                        guard tutorialStep == 1 else {
+                            return
+                        }
+
+                        viewModel.rollReel(index: index)
+
+                        SoundFeedback.shared.playButtonPressSound()
+                        ExploreHaptic.shared.play(.buttonClickHeavy)
+
+                        tutorialStep = 2
+                        return
+                    }
+
                     viewModel.rollReel(index: index)
                 }
             )
@@ -45,6 +83,7 @@ struct GameLayoutDemoView: View {
                     atkRewardPercent: viewModel.atkRewardPercent,
                     onRewardSelected: { reward in
                         viewModel.selectReward(reward)
+                        SoundFeedback.shared.chooseUpgrade()
                     },
                     onOK: {
                         viewModel.closeOverlay()
@@ -74,18 +113,30 @@ struct GameLayoutDemoView: View {
             }
 
             if showTutorialOverlay {
-                GameTutorialOverlayView(isPresented: $showTutorialOverlay)
-                    .zIndex(999)
+                GameTutorialOverlayView(
+                    isPresented: $showTutorialOverlay,
+                    step: $tutorialStep
+                )
+                .zIndex(999)
+                .allowsHitTesting(false)
             }
         }
         .task {
             viewModel.configurePersistenceIfNeeded(modelContext: modelContext)
+            viewModel.repairDeadSavedRunOnLaunchIfNeeded()
             viewModel.loadSavedRunIfAvailable()
 
             // FINAL: only show tutorial once after first download/install.
             if hasCompletedFirstGameTutorial == false {
+                tutorialStep = 1
                 showTutorialOverlay = true
             }
+        }
+        .onAppear {
+            MainBackgroundMusic.shared.playBackgroundMusic()
+        }
+        .onDisappear {
+            MainBackgroundMusic.shared.stopBackgroundMusic()
         }
     }
 }

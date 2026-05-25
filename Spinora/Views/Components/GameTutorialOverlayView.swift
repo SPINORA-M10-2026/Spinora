@@ -9,216 +9,124 @@ import SwiftUI
 
 struct GameTutorialOverlayView: View {
     @Binding var isPresented: Bool
-
-    @State private var step: Int = 1
+    @Binding var step: Int
 
     // MARK: - Easy Adjustment Values
 
-    // Bubble size
-    private let bubbleWidthRatio: CGFloat = 0.68
+    // Step 1 full-screen overlay asset position
+    private let reelOverlayXRatio: CGFloat = 0.50
+    private let reelOverlayYRatio: CGFloat = 0.54
 
-    // Step 1 bubble position
+    // Step 1 full-screen overlay asset size
+    // Increase height = light space becomes taller vertically
+    // Decrease height = light space becomes shorter vertically
+    private let reelOverlayWidthRatio: CGFloat = 1.0
+    private let reelOverlayHeightRatio: CGFloat = 1.30
+
+    // Step 2 full-screen overlay asset position
+    // Lower Y = light space moves higher
+    // Higher Y = light space moves lower
+    private let attackOverlayXRatio: CGFloat = 0.50
+    private let attackOverlayYRatio: CGFloat = 0.50
+
+    // Step 2 full-screen overlay asset size
+    // Increase height = light space becomes taller vertically
+    // Decrease height = light space becomes shorter vertically
+    private let attackOverlayWidthRatio: CGFloat = 1.0
+    private let attackOverlayHeightRatio: CGFloat = 0.998
+
+    // Alert asset size
+    private let alertWidthRatio: CGFloat = 0.63
+
+    // Step 1 alert position: Reel Machine
     // Increase Y = lower, decrease Y = higher
-    private let reelBubbleXRatio: CGFloat = 0.50
-    private let reelBubbleYRatio: CGFloat = 0.62
+    private let reelAlertXRatio: CGFloat = 0.65
+    private let reelAlertYRatio: CGFloat = 0.45
 
-    // Step 2 bubble position
+    // Step 2 alert position: Attack Button
     // Increase Y = lower, decrease Y = higher
-    private let attackBubbleXRatio: CGFloat = 0.56
-    private let attackBubbleYRatio: CGFloat = 0.42
-
-    // Reel emphasize border
-    private let reelBorderXRatio: CGFloat = 0.50
-    private let reelBorderYRatio: CGFloat = 0.92
-    private let reelBorderWidthRatio: CGFloat = 0.86
-    private let reelBorderHeightRatio: CGFloat = 0.22
-
-    // Attack button emphasize border
-    private let attackBorderXRatio: CGFloat = 0.80
-    private let attackBorderYRatio: CGFloat = 0.61
-    private let attackBorderWidthRatio: CGFloat = 0.38
-    private let attackBorderHeightRatio: CGFloat = 0.105
+    private let attackAlertXRatio: CGFloat = 0.43
+    private let attackAlertYRatio: CGFloat = 0.80
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color.black.opacity(0.58)
-                    .ignoresSafeArea()
-
                 if step == 1 {
-                    reelMachineStep(in: geometry)
+                    tutorialStep(
+                        overlayAssetName: "tutorial_overlay_1",
+                        alertAssetName: "tutorial_alert_1",
+                        overlayXRatio: reelOverlayXRatio,
+                        overlayYRatio: reelOverlayYRatio,
+                        overlayWidthRatio: reelOverlayWidthRatio,
+                        overlayHeightRatio: reelOverlayHeightRatio,
+                        alertXRatio: reelAlertXRatio,
+                        alertYRatio: reelAlertYRatio,
+                        in: geometry
+                    )
                 } else {
-                    attackButtonStep(in: geometry)
+                    tutorialStep(
+                        overlayAssetName: "tutorial_overlay_2",
+                        alertAssetName: "tutorial_alert_2",
+                        overlayXRatio: attackOverlayXRatio,
+                        overlayYRatio: attackOverlayYRatio,
+                        overlayWidthRatio: attackOverlayWidthRatio,
+                        overlayHeightRatio: attackOverlayHeightRatio,
+                        alertXRatio: attackAlertXRatio,
+                        alertYRatio: attackAlertYRatio,
+                        in: geometry
+                    )
                 }
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
             .ignoresSafeArea()
             .transition(.opacity)
             .animation(.easeInOut(duration: 0.25), value: step)
         }
+        .ignoresSafeArea()
     }
 
-    // MARK: - Step 1: Reel Machine
+    // MARK: - Tutorial Step
 
-    private func reelMachineStep(in geometry: GeometryProxy) -> some View {
-        let width = geometry.size.width
-        let height = geometry.size.height
-
-        return ZStack {
-            // MARK: Reel Emphasize Border
-            // This is placed directly on top of the reel machine.
-
-            PixelHighlightBorder()
-                .frame(
-                    width: width * reelBorderWidthRatio,
-                    height: height * reelBorderHeightRatio
-                )
-                .position(
-                    x: width * reelBorderXRatio,
-                    y: height * reelBorderYRatio
-                )
-
-            // MARK: Explanation Bubble
-            // Placed higher so it does not cover the reel machine.
-
-            tutorialBubble(
-                title: "REEL MACHINE",
-                description: "Roll each reel segment once per attempt. You have 3 segments, so you can roll up to 3 times total.",
-                progressText: "1/2",
-                button: AnyView(
-                    Button {
-                        SoundFeedback.shared.playButtonPressSound()
-                        ExploreHaptic.shared.play(.buttonClickHeavy)
-                        step = 2
-                    } label: {
-                        GamePixelText("NEXT", size: 16)
-                            .foregroundStyle(pixelDarkBrown)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(
-                                PixelPanelShape(cornerSize: 7)
-                                    .fill(pixelCream)
-                            )
-                            .overlay(
-                                PixelPanelShape(cornerSize: 7)
-                                    .stroke(pixelDarkBrown, lineWidth: 3)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                )
-            )
-            .frame(width: width * bubbleWidthRatio)
-            .position(
-                x: width * reelBubbleXRatio,
-                y: height * reelBubbleYRatio
-            )
-        }
-    }
-
-    // MARK: - Step 2: Attack Button
-
-    private func attackButtonStep(in geometry: GeometryProxy) -> some View {
-        let width = geometry.size.width
-        let height = geometry.size.height
-
-        return ZStack {
-            // MARK: Attack Button Emphasize Border
-            // This is placed directly on top of the attack button.
-
-            PixelHighlightBorder()
-                .frame(
-                    width: width * attackBorderWidthRatio,
-                    height: height * attackBorderHeightRatio
-                )
-                .position(
-                    x: width * attackBorderXRatio,
-                    y: height * attackBorderYRatio
-                )
-
-            // MARK: Explanation Bubble
-            // Placed above the attack button so the button remains visible.
-
-            tutorialBubble(
-                title: "ATTACK BUTTON",
-                description: "Attack directly, or reroll first if you still have available reel segments.",
-                progressText: "2/2",
-                button: AnyView(
-                    Button {
-                        SoundFeedback.shared.playButtonPressSound()
-                        ExploreHaptic.shared.play(.buttonClickHeavy)
-                        finishTutorial()
-                    } label: {
-                        GamePixelText("FINISH", size: 16)
-                            .foregroundStyle(pixelDarkBrown)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(
-                                PixelPanelShape(cornerSize: 7)
-                                    .fill(pixelCream)
-                            )
-                            .overlay(
-                                PixelPanelShape(cornerSize: 7)
-                                    .stroke(pixelDarkBrown, lineWidth: 3)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                )
-            )
-            .frame(width: width * bubbleWidthRatio)
-            .position(
-                x: width * attackBubbleXRatio,
-                y: height * attackBubbleYRatio
-            )
-        }
-    }
-
-    // MARK: - Bubble
-
-    private func tutorialBubble(
-        title: String,
-        description: String,
-        progressText: String,
-        button: AnyView
+    private func tutorialStep(
+        overlayAssetName: String,
+        alertAssetName: String,
+        overlayXRatio: CGFloat,
+        overlayYRatio: CGFloat,
+        overlayWidthRatio: CGFloat,
+        overlayHeightRatio: CGFloat,
+        alertXRatio: CGFloat,
+        alertYRatio: CGFloat,
+        in geometry: GeometryProxy
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            GamePixelText(title, size: 18)
-                .foregroundStyle(pixelCream)
+        let width = geometry.size.width
+        let height = geometry.size.height
 
-            Text(description)
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                .foregroundStyle(pixelCream.opacity(0.95))
-                .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
+        return ZStack {
+            Image(overlayAssetName)
+                .resizable()
+                .frame(
+                    width: width * overlayWidthRatio,
+                    height: height * overlayHeightRatio
+                )
+                .position(
+                    x: width * overlayXRatio,
+                    y: height * overlayYRatio
+                )
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
-            HStack(spacing: 10) {
-                Spacer()
-
-                GamePixelText(progressText, size: 16)
-                    .foregroundStyle(pixelCream.opacity(0.9))
-
-                button
-            }
-            .padding(.top, 4)
+            Image(alertAssetName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: width * alertWidthRatio)
+                .position(
+                    x: width * alertXRatio,
+                    y: height * alertYRatio
+                )
+                .allowsHitTesting(false)
         }
-        .padding(14)
-        .background(
-            PixelPanelShape(cornerSize: 13)
-                .fill(pixelWood)
-        )
-        .overlay(
-            PixelPanelShape(cornerSize: 13)
-                .stroke(pixelDarkBrown, lineWidth: 4)
-        )
-        .overlay(
-            PixelPanelShape(cornerSize: 13)
-                .stroke(pixelCream.opacity(0.55), lineWidth: 2)
-                .padding(5)
-        )
-        .shadow(color: .black.opacity(0.45), radius: 0, x: 5, y: 5)
-    }
-
-    private func finishTutorial() {
-        UserDefaults.standard.set(true, forKey: "hasCompletedFirstGameTutorial")
-        isPresented = false
+        .frame(width: width, height: height)
+        .ignoresSafeArea()
     }
 
     // MARK: - Palette
@@ -285,4 +193,12 @@ struct PixelPanelShape: Shape {
 
         return path
     }
+}
+
+
+#Preview("Tutorial Step 2 - Attack") {
+    GameTutorialOverlayView(
+        isPresented: .constant(true),
+        step: .constant(2)
+    )
 }
