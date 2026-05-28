@@ -249,6 +249,57 @@ final class SoundFeedback {
         }
     }
 
+    func double() {
+        guard let url = Bundle.main.url(
+            forResource: "Double SFX",
+            withExtension: "wav"
+        ) ?? Bundle.main.url(
+            forResource: "Double SFX",
+            withExtension: "wav",
+            subdirectory: "Sounds"
+        ) else {
+            assertionFailure("Could not find Double SFX.wav")
+            return
+        }
 
-    
+        do {
+            if rollPressPlayer?.url != url {
+                rollPressPlayer = try AVAudioPlayer(contentsOf: url)
+                rollPressPlayer?.prepareToPlay()
+            }
+
+            rollPressPlayer?.currentTime = 0
+            rollPressPlayer?.play()
+        } catch {
+            assertionFailure("Failed to play: \(error.localizedDescription)")
+        }
+    }
+
+    func jackpot() {
+        guard let url = Bundle.main.url(
+            forResource: "Jackpot SFX",
+            withExtension: "wav"
+        ) ?? Bundle.main.url(
+            forResource: "Jackpot SFX",
+            withExtension: "wav",
+            subdirectory: "Sounds"
+        ) else {
+            assertionFailure("Could not find Jackpot SFX.wav")
+            return
+        }
+
+        do {
+            if rollPressPlayer?.url != url {
+                rollPressPlayer = try AVAudioPlayer(contentsOf: url)
+                rollPressPlayer?.prepareToPlay()
+            }
+
+            rollPressPlayer?.currentTime = 0
+            rollPressPlayer?.play()
+        } catch {
+            assertionFailure("Failed to play: \(error.localizedDescription)")
+        }
+    }
+
+
 }
