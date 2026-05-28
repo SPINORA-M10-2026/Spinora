@@ -80,7 +80,7 @@ final class ExploreHaptic {
             impact(.soft)
             
         case .jackpot:
-            jackpotPattern()
+            jackpotPattern(duration: 1.5)
             
         }
     }
@@ -97,20 +97,30 @@ final class ExploreHaptic {
         generator.notificationOccurred(type)
     }
     
-    private func jackpotPattern() {
-        impact(.light)
+    private func jackpotPattern(duration: TimeInterval = 2.0) {
+        let startTime = Date()
+        let interval: TimeInterval = 0.06
+        var shouldImpact = true
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-            self.impact(.medium)
+        func roll() {
+            let elapsedTime = Date().timeIntervalSince(startTime)
+            
+            guard elapsedTime < duration else {
+                return
+            }
+            
+            if shouldImpact {
+                self.impact(.heavy)
+            }
+            
+            shouldImpact.toggle()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+                roll()
+            }
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
-            self.impact(.heavy)
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-            self.notification(.success)
-        }
+        roll()
     }
     
     func playSlotRollRandom(duration: TimeInterval = 2.0) {

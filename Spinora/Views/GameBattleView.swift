@@ -161,9 +161,12 @@ struct GameBattleView: View {
         withAnimation {
             if matchingCount == 3 {
                 activeAnimation = .jackpot
+                SoundFeedback.shared.jackpot()
+                ExploreHaptic.shared.play(.jackpot)
                 startDismissTimer()
             } else if matchingCount == 2 {
                 activeAnimation = .double
+                SoundFeedback.shared.double()
                 startDismissTimer()
             } else {
                 activeAnimation = nil
